@@ -203,7 +203,7 @@ contract PredictionMarketTest is Test {
 
         vm.prank(buyer);
         uint256 returnedAmount = market.removeLiquidity(10 ether);
-        
+
         assertEq(returnedAmount, 110 ether);
         assertEq(lpToken.balanceOf(buyer), 190 ether);
         assertEq(collateralToken.balanceOf(buyer), balanceBefore + returnedAmount);
