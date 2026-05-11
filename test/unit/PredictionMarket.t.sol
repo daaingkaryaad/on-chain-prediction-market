@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 
 import {PredictionMarket} from "../../src/core/PredictionMarket.sol";
 import {OutcomeToken} from "../../src/tokens/OutcomeToken.sol";
+import {LPToken} from "../../src/tokens/LPToken.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {MockOracleAdapter} from "../../src/oracle/MockOracleAdapter.sol";
 import {MarketTypes} from "../../src/core/MarketTypes.sol";
@@ -12,6 +13,7 @@ import {MarketTypes} from "../../src/core/MarketTypes.sol";
 contract PredictionMarketTest is Test {
     PredictionMarket internal market;
     OutcomeToken internal outcomeToken;
+    LPToken internal lpToken;
     MockERC20 internal collateralToken;
     MockOracleAdapter internal oracle;
 
@@ -28,6 +30,7 @@ contract PredictionMarketTest is Test {
 
         collateralToken = new MockERC20("Mock USDC", "mUSDC", 18, admin);
         outcomeToken = new OutcomeToken(admin, "ipfs://predictx/{id}.json");
+        lpToken = new LPToken(admin);
         oracle = new MockOracleAdapter(admin, 1 days);
 
         market = new PredictionMarket(
@@ -35,6 +38,7 @@ contract PredictionMarketTest is Test {
             marketQuestion,
             address(collateralToken),
             address(outcomeToken),
+            address(lpToken),
             address(oracle),
             resolutionTime,
             1_000 ether,
@@ -42,6 +46,7 @@ contract PredictionMarketTest is Test {
         );
 
         outcomeToken.grantRole(outcomeToken.MINTER_ROLE(), address(market));
+        lpToken.grantRole(lpToken.MINTER_ROLE(), address(market));
 
         collateralToken.mint(buyer, 10_000 ether);
 
@@ -63,6 +68,10 @@ contract PredictionMarketTest is Test {
 
     function testConstructorStoresOutcomeToken() public view {
         assertEq(address(market.outcomeToken()), address(outcomeToken));
+    }
+
+    function testConstructorStoresLPToken() public view {
+        assertEq(address(market.lpToken()), address(lpToken));
     }
 
     function testConstructorStoresOracleAdapter() public view {
@@ -161,6 +170,98 @@ contract PredictionMarketTest is Test {
         vm.prank(buyer);
         vm.expectRevert();
         market.buyNo(100 ether, 1_000 ether);
+    }
+
+    function testAddLiquidityTransfersCollateralAndMintsLpTokens() public {
+        vm.prank(buyer);
+        uint256 minted = market.addLiquidity(200 ether);
+
+        assertEq(minted, 200 ether);
+        assertEq(lpToken.balanceOf(buyer), 200 ether);
+        assertEq(collateralToken.balanceOf(address(market)), 200 ether);
+    }
+
+    function testAddLiquidityUpdatesReserves() public {
+        vm.prank(buyer);
+        market.addLiquidity(200 ether);
+
+        assertEq(market.yesReserve(), 1_100 ether);
+        assertEq(market.noReserve(), 1_100 ether);
+    }
+
+    function testAddLiquidityRevertsIfAmountIsZero() public {
+        vm.prank(buyer);
+        vm.expectRevert(PredictionMarket.InvalidAmount.selector);
+        market.addLiquidity(0);
+    }
+
+    function testRemoveLiquidityBurnsLpTokensAndReturnsCollateral() public {
+        vm.prank(buyer);
+        market.addLiquidity(200 ether);
+
+        uint256 balanceBefore = collateralToken.balanceOf(buyer);
+
+        vm.prank(buyer);
+        uint256 returnedAmount = market.removeLiquidity(10 ether);
+        
+        assertEq(returnedAmount, 110 ether);
+        assertEq(lpToken.balanceOf(buyer), 190 ether);
+        assertEq(collateralToken.balanceOf(buyer), balanceBefore + returnedAmount);
+    }
+
+    function testRemoveLiquidityRevertsIfAmountIsZero() public {
+        vm.prank(buyer);
+        vm.expectRevert(PredictionMarket.InvalidAmount.selector);
+        market.removeLiquidity(0);
+    }
+
+    function testSellYesBurnsSharesAndTransfersCollateral() public {
+        vm.prank(buyer);
+        uint256 sharesOut = market.buyYes(100 ether, 1);
+
+        uint256 balanceBefore = collateralToken.balanceOf(buyer);
+
+        vm.prank(buyer);
+        uint256 collateralOut = market.sellYes(sharesOut / 2, 1);
+
+        uint256 yesTokenId = outcomeToken.tokenId(marketId, MarketTypes.Outcome.Yes);
+
+        assertEq(outcomeToken.balanceOf(buyer, yesTokenId), sharesOut - (sharesOut / 2));
+        assertEq(collateralToken.balanceOf(buyer), balanceBefore + collateralOut);
+    }
+
+    function testSellNoBurnsSharesAndTransfersCollateral() public {
+        vm.prank(buyer);
+        uint256 sharesOut = market.buyNo(100 ether, 1);
+
+        uint256 balanceBefore = collateralToken.balanceOf(buyer);
+
+        vm.prank(buyer);
+        uint256 collateralOut = market.sellNo(sharesOut / 2, 1);
+
+        uint256 noTokenId = outcomeToken.tokenId(marketId, MarketTypes.Outcome.No);
+
+        assertEq(outcomeToken.balanceOf(buyer, noTokenId), sharesOut - (sharesOut / 2));
+        assertEq(collateralToken.balanceOf(buyer), balanceBefore + collateralOut);
+    }
+
+    function testSellYesRevertsIfAmountIsZero() public {
+        vm.prank(buyer);
+        vm.expectRevert(PredictionMarket.InvalidAmount.selector);
+        market.sellYes(0, 1);
+    }
+
+    function testSellNoRevertsIfAmountIsZero() public {
+        vm.prank(buyer);
+        vm.expectRevert(PredictionMarket.InvalidAmount.selector);
+        market.sellNo(0, 1);
+    }
+
+    function testGetMarketReservesReturnsCurrentReserves() public view {
+        (uint256 currentYesReserve, uint256 currentNoReserve) = market.getMarketReserves();
+
+        assertEq(currentYesReserve, 1_000 ether);
+        assertEq(currentNoReserve, 1_000 ether);
     }
 
     function testResolveMarketRevertsBeforeResolutionTime() public {
