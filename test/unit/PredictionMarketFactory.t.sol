@@ -6,12 +6,14 @@ import {Test} from "forge-std/Test.sol";
 import {PredictionMarketFactory} from "../../src/core/PredictionMarketFactory.sol";
 import {PredictionMarket} from "../../src/core/PredictionMarket.sol";
 import {OutcomeToken} from "../../src/tokens/OutcomeToken.sol";
+import {LPToken} from "../../src/tokens/LPToken.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {MockOracleAdapter} from "../../src/oracle/MockOracleAdapter.sol";
 
 contract PredictionMarketFactoryTest is Test {
     PredictionMarketFactory internal factory;
     OutcomeToken internal outcomeToken;
+    LPToken internal lpToken;
     MockERC20 internal collateralToken;
     MockOracleAdapter internal oracle;
 
@@ -27,6 +29,7 @@ contract PredictionMarketFactoryTest is Test {
 
         factory = new PredictionMarketFactory(admin);
         outcomeToken = new OutcomeToken(admin, "ipfs://predictx/{id}.json");
+        lpToken = new LPToken(admin);
         collateralToken = new MockERC20("Mock USDC", "mUSDC", 6, admin);
         oracle = new MockOracleAdapter(admin, 1 days);
     }
@@ -45,6 +48,7 @@ contract PredictionMarketFactoryTest is Test {
             question,
             address(collateralToken),
             address(outcomeToken),
+            address(lpToken),
             address(oracle),
             resolutionTime,
             1_000 ether
@@ -59,6 +63,7 @@ contract PredictionMarketFactoryTest is Test {
             question,
             address(collateralToken),
             address(outcomeToken),
+            address(lpToken),
             address(oracle),
             resolutionTime,
             1_000 ether
@@ -73,6 +78,7 @@ contract PredictionMarketFactoryTest is Test {
             question,
             address(collateralToken),
             address(outcomeToken),
+            address(lpToken),
             address(oracle),
             resolutionTime,
             1_000 ether
@@ -85,7 +91,14 @@ contract PredictionMarketFactoryTest is Test {
         vm.expectRevert(PredictionMarketFactory.ZeroAddress.selector);
 
         factory.createMarket(
-            marketId, question, address(0), address(outcomeToken), address(oracle), resolutionTime, 1_000 ether
+            marketId,
+            question,
+            address(0),
+            address(outcomeToken),
+            address(lpToken),
+            address(oracle),
+            resolutionTime,
+            1_000 ether
         );
     }
 
@@ -93,7 +106,29 @@ contract PredictionMarketFactoryTest is Test {
         vm.expectRevert(PredictionMarketFactory.ZeroAddress.selector);
 
         factory.createMarket(
-            marketId, question, address(collateralToken), address(0), address(oracle), resolutionTime, 1_000 ether
+            marketId,
+            question,
+            address(collateralToken),
+            address(0),
+            address(lpToken),
+            address(oracle),
+            resolutionTime,
+            1_000 ether
+        );
+    }
+
+    function testCreateMarketRevertsIfLPTokenIsZero() public {
+        vm.expectRevert(PredictionMarketFactory.ZeroAddress.selector);
+
+        factory.createMarket(
+            marketId,
+            question,
+            address(collateralToken),
+            address(outcomeToken),
+            address(0),
+            address(oracle),
+            resolutionTime,
+            1_000 ether
         );
     }
 
@@ -101,7 +136,14 @@ contract PredictionMarketFactoryTest is Test {
         vm.expectRevert(PredictionMarketFactory.ZeroAddress.selector);
 
         factory.createMarket(
-            marketId, question, address(collateralToken), address(outcomeToken), address(0), resolutionTime, 1_000 ether
+            marketId,
+            question,
+            address(collateralToken),
+            address(outcomeToken),
+            address(lpToken),
+            address(0),
+            resolutionTime,
+            1_000 ether
         );
     }
 
@@ -109,7 +151,14 @@ contract PredictionMarketFactoryTest is Test {
         vm.expectRevert(PredictionMarketFactory.InvalidLiquidity.selector);
 
         factory.createMarket(
-            marketId, question, address(collateralToken), address(outcomeToken), address(oracle), resolutionTime, 0
+            marketId,
+            question,
+            address(collateralToken),
+            address(outcomeToken),
+            address(lpToken),
+            address(oracle),
+            resolutionTime,
+            0
         );
     }
 
@@ -122,6 +171,7 @@ contract PredictionMarketFactoryTest is Test {
             question,
             address(collateralToken),
             address(outcomeToken),
+            address(lpToken),
             address(oracle),
             resolutionTime,
             1_000 ether
@@ -137,6 +187,7 @@ contract PredictionMarketFactoryTest is Test {
             question,
             address(collateralToken),
             address(outcomeToken),
+            address(lpToken),
             address(oracle),
             resolutionTime,
             1_000 ether
@@ -155,6 +206,7 @@ contract PredictionMarketFactoryTest is Test {
                 question,
                 address(collateralToken),
                 address(outcomeToken),
+                address(lpToken),
                 address(oracle),
                 resolutionTime,
                 1_000 ether,
@@ -172,6 +224,7 @@ contract PredictionMarketFactoryTest is Test {
             question,
             address(collateralToken),
             address(outcomeToken),
+            address(lpToken),
             address(oracle),
             resolutionTime,
             1_000 ether

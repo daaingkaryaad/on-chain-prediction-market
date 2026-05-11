@@ -17,13 +17,7 @@ contract FeeVault is ERC4626, AccessControl, IFeeVault {
 
     bytes32 public constant FEE_DEPOSITOR_ROLE = keccak256("FEE_DEPOSITOR_ROLE");
 
-    constructor(
-        IERC20 asset_,
-        address admin
-    )
-        ERC20("PredictX Fee Vault Share", "pxFEE")
-        ERC4626(asset_)
-    {
+    constructor(IERC20 asset_, address admin) ERC20("PredictX Fee Vault Share", "pxFEE") ERC4626(asset_) {
         if (address(asset_) == address(0)) revert ZeroAddress();
         if (admin == address(0)) revert ZeroAddress();
 

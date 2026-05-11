@@ -5,8 +5,6 @@ import {AccessControl} from "../../lib/openzeppelin-contracts/contracts/access/A
 
 import {PredictionMarket} from "./PredictionMarket.sol";
 
-/// @title PredictionMarketFactory
-/// @notice Factory contract for deploying prediction markets using CREATE and CREATE2.
 contract PredictionMarketFactory is AccessControl {
     error ZeroAddress();
     error InvalidLiquidity();
@@ -29,17 +27,12 @@ contract PredictionMarketFactory is AccessControl {
         string calldata question,
         address collateralToken,
         address outcomeToken,
+        address lpToken,
         address oracleAdapter,
         uint256 resolutionTime,
         uint256 initialLiquidity
     ) external onlyRole(CREATOR_ROLE) returns (address market) {
-        if (collateralToken == address(0) || outcomeToken == address(0) || oracleAdapter == address(0)) {
-            revert ZeroAddress();
-        }
-
-        if (initialLiquidity == 0) {
-            revert InvalidLiquidity();
-        }
+        _validateMarketInputs(collateralToken, outcomeToken, lpToken, oracleAdapter, initialLiquidity);
 
         market = address(
             new PredictionMarket(
@@ -47,6 +40,7 @@ contract PredictionMarketFactory is AccessControl {
                 question,
                 collateralToken,
                 outcomeToken,
+                lpToken,
                 oracleAdapter,
                 resolutionTime,
                 initialLiquidity,
@@ -65,17 +59,12 @@ contract PredictionMarketFactory is AccessControl {
         string calldata question,
         address collateralToken,
         address outcomeToken,
+        address lpToken,
         address oracleAdapter,
         uint256 resolutionTime,
         uint256 initialLiquidity
     ) external onlyRole(CREATOR_ROLE) returns (address market) {
-        if (collateralToken == address(0) || outcomeToken == address(0) || oracleAdapter == address(0)) {
-            revert ZeroAddress();
-        }
-
-        if (initialLiquidity == 0) {
-            revert InvalidLiquidity();
-        }
+        _validateMarketInputs(collateralToken, outcomeToken, lpToken, oracleAdapter, initialLiquidity);
 
         market = address(
             new PredictionMarket{salt: salt}(
@@ -83,6 +72,7 @@ contract PredictionMarketFactory is AccessControl {
                 question,
                 collateralToken,
                 outcomeToken,
+                lpToken,
                 oracleAdapter,
                 resolutionTime,
                 initialLiquidity,
@@ -97,5 +87,24 @@ contract PredictionMarketFactory is AccessControl {
 
     function marketsCount() external view returns (uint256) {
         return allMarkets.length;
+    }
+
+    function _validateMarketInputs(
+        address collateralToken,
+        address outcomeToken,
+        address lpToken,
+        address oracleAdapter,
+        uint256 initialLiquidity
+    ) internal pure {
+        if (
+            collateralToken == address(0) || outcomeToken == address(0) || lpToken == address(0)
+                || oracleAdapter == address(0)
+        ) {
+            revert ZeroAddress();
+        }
+
+        if (initialLiquidity == 0) {
+            revert InvalidLiquidity();
+        }
     }
 }
