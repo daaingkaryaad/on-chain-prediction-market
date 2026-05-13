@@ -50,13 +50,7 @@ contract PredictionMarketInvariantTest is StdInvariant, Test {
         outcomeToken.grantRole(outcomeToken.MINTER_ROLE(), address(market));
         lpToken.grantRole(lpToken.MINTER_ROLE(), address(market));
 
-        handler = new PredictionMarketHandler(
-            market,
-            outcomeToken,
-            lpToken,
-            collateralToken,
-            marketId
-        );
+        handler = new PredictionMarketHandler(market, outcomeToken, lpToken, collateralToken, marketId);
 
         collateralToken.mint(address(handler), 1_000_000 ether);
 
@@ -69,10 +63,7 @@ contract PredictionMarketInvariantTest is StdInvariant, Test {
     }
 
     function invariantMarketStaysOpenDuringTrading() public view {
-        assertEq(
-            uint256(market.marketState()),
-            uint256(MarketTypes.MarketState.Open)
-        );
+        assertEq(uint256(market.marketState()), uint256(MarketTypes.MarketState.Open));
     }
 
     function invariantCollateralSupplyCoversTrackedBalances() public view {
@@ -80,29 +71,19 @@ contract PredictionMarketInvariantTest is StdInvariant, Test {
         uint256 handlerBalance = collateralToken.balanceOf(address(handler));
         uint256 adminBalance = collateralToken.balanceOf(admin);
 
-        assertLe(
-            marketBalance + handlerBalance + adminBalance,
-            collateralToken.totalSupply()
-        );
+        assertLe(marketBalance + handlerBalance + adminBalance, collateralToken.totalSupply());
     }
 
     function invariantLpSupplyDoesNotExceedTotalCollateralSupply() public view {
-        assertLe(
-            lpToken.totalSupply(),
-            collateralToken.totalSupply()
-        );
+        assertLe(lpToken.totalSupply(), collateralToken.totalSupply());
     }
 
     function invariantOutcomeTokenSupplyDoesNotExceedCollateralSupply() public view {
         uint256 yesTokenId = outcomeToken.tokenId(marketId, MarketTypes.Outcome.Yes);
         uint256 noTokenId = outcomeToken.tokenId(marketId, MarketTypes.Outcome.No);
 
-        uint256 totalOutcomeSupply =
-            outcomeToken.totalSupply(yesTokenId) + outcomeToken.totalSupply(noTokenId);
+        uint256 totalOutcomeSupply = outcomeToken.totalSupply(yesTokenId) + outcomeToken.totalSupply(noTokenId);
 
-        assertLe(
-            totalOutcomeSupply,
-            collateralToken.totalSupply()
-        );
+        assertLe(totalOutcomeSupply, collateralToken.totalSupply());
     }
 }

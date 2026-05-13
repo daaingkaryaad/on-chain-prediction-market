@@ -13,47 +13,30 @@ contract ChainlinkOracleAdapterTest is Test {
     function setUp() public {
         aggregator = new MockChainlinkAggregator(8);
 
-        adapter = new ChainlinkOracleAdapter(
-            address(aggregator),
-            1 days
-        );
+        adapter = new ChainlinkOracleAdapter(address(aggregator), 1 days);
     }
 
     function testLatestPriceReturnsCorrectData() public {
-        aggregator.setRoundData(
-            3000e8,
-            block.timestamp
-        );
+        aggregator.setRoundData(3000e8, block.timestamp);
 
-        (int256 answer, uint256 updatedAt) =
-            adapter.latestPrice();
+        (int256 answer, uint256 updatedAt) = adapter.latestPrice();
 
         assertEq(answer, 3000e8);
         assertEq(updatedAt, block.timestamp);
     }
 
     function testLatestPriceRevertsOnStalePrice() public {
-        aggregator.setRoundData(
-            3000e8,
-            block.timestamp - 2 days
-        );
+        aggregator.setRoundData(3000e8, block.timestamp - 2 days);
 
-        vm.expectRevert(
-            ChainlinkOracleAdapter.StalePrice.selector
-        );
+        vm.expectRevert(ChainlinkOracleAdapter.StalePrice.selector);
 
         adapter.latestPrice();
     }
 
     function testLatestPriceRevertsOnInvalidPrice() public {
-        aggregator.setRoundData(
-            0,
-            block.timestamp
-        );
+        aggregator.setRoundData(0, block.timestamp);
 
-        vm.expectRevert(
-            ChainlinkOracleAdapter.InvalidPrice.selector
-        );
+        vm.expectRevert(ChainlinkOracleAdapter.InvalidPrice.selector);
 
         adapter.latestPrice();
     }

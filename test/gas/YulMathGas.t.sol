@@ -6,61 +6,29 @@ import {Test} from "forge-std/Test.sol";
 import {YulMath} from "../../src/libraries/YulMath.sol";
 
 contract SolidityMathHarness {
-    function min(uint256 a, uint256 b)
-        external
-        pure
-        returns (uint256)
-    {
+    function min(uint256 a, uint256 b) external pure returns (uint256) {
         return a < b ? a : b;
     }
 
-    function max(uint256 a, uint256 b)
-        external
-        pure
-        returns (uint256)
-    {
+    function max(uint256 a, uint256 b) external pure returns (uint256) {
         return a > b ? a : b;
     }
 
-    function mulDiv(
-        uint256 x,
-        uint256 y,
-        uint256 denominator
-    )
-        external
-        pure
-        returns (uint256)
-    {
+    function mulDiv(uint256 x, uint256 y, uint256 denominator) external pure returns (uint256) {
         return (x * y) / denominator;
     }
 }
 
 contract YulMathHarness {
-    function min(uint256 a, uint256 b)
-        external
-        pure
-        returns (uint256)
-    {
+    function min(uint256 a, uint256 b) external pure returns (uint256) {
         return YulMath.min(a, b);
     }
 
-    function max(uint256 a, uint256 b)
-        external
-        pure
-        returns (uint256)
-    {
+    function max(uint256 a, uint256 b) external pure returns (uint256) {
         return YulMath.max(a, b);
     }
 
-    function mulDiv(
-        uint256 x,
-        uint256 y,
-        uint256 denominator
-    )
-        external
-        pure
-        returns (uint256)
-    {
+    function mulDiv(uint256 x, uint256 y, uint256 denominator) external pure returns (uint256) {
         return YulMath.mulDiv(x, y, denominator);
     }
 }
@@ -99,21 +67,13 @@ contract YulMathGasTest is Test {
     }
 
     function testGasMulDivSolidity() public view {
-        uint256 result = solidityMath.mulDiv(
-            1_000 ether,
-            500 ether,
-            100 ether
-        );
+        uint256 result = solidityMath.mulDiv(1_000 ether, 500 ether, 100 ether);
 
         assertEq(result, 5_000 ether);
     }
 
     function testGasMulDivYul() public view {
-        uint256 result = yulMath.mulDiv(
-            1_000 ether,
-            500 ether,
-            100 ether
-        );
+        uint256 result = yulMath.mulDiv(1_000 ether, 500 ether, 100 ether);
 
         assertEq(result, 5_000 ether);
     }

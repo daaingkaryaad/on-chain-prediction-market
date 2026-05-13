@@ -58,16 +58,12 @@ contract ProtocolGovernorTest is Test {
     }
 
     function testQuorumIsFourPercent() public {
-    vm.roll(block.number + 1);
+        vm.roll(block.number + 1);
 
-    uint256 expectedQuorum =
-        (token.totalSupply() * 4) / 100;
+        uint256 expectedQuorum = (token.totalSupply() * 4) / 100;
 
-    assertEq(
-        governor.quorum(block.number - 1),
-        expectedQuorum
-    );
-}
+        assertEq(governor.quorum(block.number - 1), expectedQuorum);
+    }
 
     function testProposalThresholdIsOnePercent() public view {
         uint256 expectedThreshold = (token.totalSupply() * 1) / 100;
