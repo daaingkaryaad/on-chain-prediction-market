@@ -32,84 +32,55 @@ contract ProtocolGovernorTest is Test {
         address[] memory executors = new address[](1);
         executors[0] = address(0);
 
-        timelock = new ProtocolTimelock(
-            proposers,
-            executors,
-            admin
-        );
+        timelock = new ProtocolTimelock(proposers, executors, admin);
 
-        governor = new ProtocolGovernor(
-            token,
-            timelock
-        );
+        governor = new ProtocolGovernor(token, timelock);
 
         target = new MockGovernanceTarget();
 
-        timelock.grantRole(
-            timelock.PROPOSER_ROLE(),
-            address(governor)
-        );
+        timelock.grantRole(timelock.PROPOSER_ROLE(), address(governor));
 
-        timelock.grantRole(
-            timelock.CANCELLER_ROLE(),
-            address(governor)
-        );
+        timelock.grantRole(timelock.CANCELLER_ROLE(), address(governor));
 
-        timelock.revokeRole(
-            bytes32(0),
-            admin
-        );
+        timelock.revokeRole(bytes32(0), admin);
     }
 
     function testGovernorName() public view {
-        assertEq(
-            governor.name(),
-            "PredictX Governor"
-        );
+        assertEq(governor.name(), "PredictX Governor");
     }
 
     function testVotingDelayIsOneDayInBlocks() public view {
-        assertEq(
-            governor.votingDelay(),
-            7_200
-        );
+        assertEq(governor.votingDelay(), 7_200);
     }
 
     function testVotingPeriodIsOneWeekInBlocks() public view {
-        assertEq(
-            governor.votingPeriod(),
-            50_400
-        );
+        assertEq(governor.votingPeriod(), 50_400);
     }
-    
-    function testQuorumIsFourPercent() public { 
-        uint256 checkpointBlock = block.number;
-        uint256 expectedQuorum = (token.totalSupply() * 4) / 100;
-        assertEq(governor.quorum(checkpointBlock), expectedQuorum);
+
+    function testQuorumIsFourPercent() public {
+    vm.roll(block.number + 1);
+
+    uint256 expectedQuorum =
+        (token.totalSupply() * 4) / 100;
+
+    assertEq(
+        governor.quorum(block.number - 1),
+        expectedQuorum
+    );
 }
 
     function testProposalThresholdIsOnePercent() public view {
-        uint256 expectedThreshold =
-            (token.totalSupply() * 1) / 100;
+        uint256 expectedThreshold = (token.totalSupply() * 1) / 100;
 
-        assertEq(
-            governor.proposalThreshold(),
-            expectedThreshold
-        );
+        assertEq(governor.proposalThreshold(), expectedThreshold);
     }
 
     function testTimelockDelayIsTwoDays() public view {
-        assertEq(
-            timelock.getMinDelay(),
-            2 days
-        );
+        assertEq(timelock.getMinDelay(), 2 days);
     }
 
     function testDelegationGivesVotingPower() public view {
-        assertEq(
-            token.getVotes(voter),
-            100_000 ether
-        );
+        assertEq(token.getVotes(voter), 100_000 ether);
     }
 
     function testFullGovernanceLifecycle() public {
@@ -120,87 +91,38 @@ contract ProtocolGovernorTest is Test {
         values[0] = 0;
 
         bytes[] memory calldatas = new bytes[](1);
-        calldatas[0] =
-            abi.encodeWithSelector(
-                MockGovernanceTarget.setValue.selector,
-                42
-            );
+        calldatas[0] = abi.encodeWithSelector(MockGovernanceTarget.setValue.selector, 42);
 
-        string memory description =
-            "Proposal: set mock governance target value to 42";
+        string memory description = "Proposal: set mock governance target value to 42";
 
         vm.prank(voter);
-        uint256 proposalId =
-            governor.propose(
-                targets,
-                values,
-                calldatas,
-                description
-            );
+        uint256 proposalId = governor.propose(targets, values, calldatas, description);
 
-        assertEq(
-            uint256(governor.state(proposalId)),
-            0
-        );
+        assertEq(uint256(governor.state(proposalId)), 0);
 
-        vm.roll(
-            block.number + governor.votingDelay() + 1
-        );
+        vm.roll(block.number + governor.votingDelay() + 1);
 
-        assertEq(
-            uint256(governor.state(proposalId)),
-            1
-        );
+        assertEq(uint256(governor.state(proposalId)), 1);
 
         vm.prank(voter);
-        governor.castVote(
-            proposalId,
-            1
-        );
+        governor.castVote(proposalId, 1);
 
-        vm.roll(
-            block.number + governor.votingPeriod() + 1
-        );
+        vm.roll(block.number + governor.votingPeriod() + 1);
 
-        assertEq(
-            uint256(governor.state(proposalId)),
-            4
-        );
+        assertEq(uint256(governor.state(proposalId)), 4);
 
-        bytes32 descriptionHash =
-            keccak256(bytes(description));
+        bytes32 descriptionHash = keccak256(bytes(description));
 
-        governor.queue(
-            targets,
-            values,
-            calldatas,
-            descriptionHash
-        );
+        governor.queue(targets, values, calldatas, descriptionHash);
 
-        assertEq(
-            uint256(governor.state(proposalId)),
-            5
-        );
+        assertEq(uint256(governor.state(proposalId)), 5);
 
-        vm.warp(
-            block.timestamp + timelock.getMinDelay() + 1
-        );
+        vm.warp(block.timestamp + timelock.getMinDelay() + 1);
 
-        governor.execute(
-            targets,
-            values,
-            calldatas,
-            descriptionHash
-        );
+        governor.execute(targets, values, calldatas, descriptionHash);
 
-        assertEq(
-            uint256(governor.state(proposalId)),
-            7
-        );
+        assertEq(uint256(governor.state(proposalId)), 7);
 
-        assertEq(
-            target.value(),
-            42
-        );
+        assertEq(target.value(), 42);
     }
 }
