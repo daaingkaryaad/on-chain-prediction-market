@@ -11,6 +11,8 @@ contract ChainlinkOracleAdapterTest is Test {
     MockChainlinkAggregator internal aggregator;
 
     function setUp() public {
+        vm.warp(10 days);
+
         aggregator = new MockChainlinkAggregator(8);
 
         adapter = new ChainlinkOracleAdapter(address(aggregator), 1 days);

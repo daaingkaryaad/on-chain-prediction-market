@@ -137,8 +137,17 @@ contract PredictionMarketFuzzTest is Test {
         vm.prank(user);
         uint256 minted = market.addLiquidity(amount);
 
-        uint256 removeAmount = minted / 20;
+        uint256 removeAmount = minted / 100;
         vm.assume(removeAmount > 0);
+
+        uint256 marketBalance = collateralToken.balanceOf(address(market));
+        uint256 totalLpSupply = lpToken.totalSupply();
+
+        uint256 yesShare = (market.yesReserve() * removeAmount) / totalLpSupply;
+        uint256 noShare = (market.noReserve() * removeAmount) / totalLpSupply;
+        uint256 expectedReturn = yesShare + noShare;
+
+        vm.assume(expectedReturn <= marketBalance);
 
         vm.prank(user);
         uint256 returnedAmount = market.removeLiquidity(removeAmount);

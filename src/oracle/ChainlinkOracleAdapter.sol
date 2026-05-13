@@ -39,6 +39,10 @@ contract ChainlinkOracleAdapter {
             revert InvalidPrice();
         }
 
+        if (updated > block.timestamp) {
+            revert StalePrice();
+        }
+
         if (block.timestamp - updated > stalePriceDelay) {
             revert StalePrice();
         }
