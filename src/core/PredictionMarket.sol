@@ -38,7 +38,7 @@ contract PredictionMarket is IPredictionMarket, ReentrancyGuard, AccessControl {
 
     string public override question;
 
-    uint256 public resolutionTime;
+    uint256 public immutable resolutionTime;
 
     uint256 public yesReserve;
     uint256 public noReserve;
@@ -170,10 +170,10 @@ contract PredictionMarket is IPredictionMarket, ReentrancyGuard, AccessControl {
             revert InsufficientLiquidity();
         }
 
-        outcomeToken.burn(msg.sender, marketId, MarketTypes.Outcome.Yes, shareAmount);
-
         noReserve += shareAmount;
         yesReserve -= collateralOut;
+
+        outcomeToken.burn(msg.sender, marketId, MarketTypes.Outcome.Yes, shareAmount);
 
         collateralToken.safeTransfer(msg.sender, collateralOut);
 
@@ -202,10 +202,10 @@ contract PredictionMarket is IPredictionMarket, ReentrancyGuard, AccessControl {
             revert InsufficientLiquidity();
         }
 
-        outcomeToken.burn(msg.sender, marketId, MarketTypes.Outcome.No, shareAmount);
-
         yesReserve += shareAmount;
         noReserve -= collateralOut;
+
+        outcomeToken.burn(msg.sender, marketId, MarketTypes.Outcome.No, shareAmount);
 
         collateralToken.safeTransfer(msg.sender, collateralOut);
 
@@ -267,10 +267,10 @@ contract PredictionMarket is IPredictionMarket, ReentrancyGuard, AccessControl {
             revert InsufficientLiquidity();
         }
 
-        lpToken.burn(msg.sender, lpTokenAmount);
-
         yesReserve -= yesShare;
         noReserve -= noShare;
+
+        lpToken.burn(msg.sender, lpTokenAmount);
 
         collateralToken.safeTransfer(msg.sender, collateralReturned);
 

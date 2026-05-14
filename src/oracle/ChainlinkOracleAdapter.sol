@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
+
 interface AggregatorV3Interface {
     function latestRoundData()
         external
@@ -10,10 +12,11 @@ interface AggregatorV3Interface {
     function decimals() external view returns (uint8);
 }
 
-contract ChainlinkOracleAdapter {
+contract ChainlinkOracleAdapter is IPriceOracle {
     error InvalidOracle();
     error StalePrice();
     error InvalidPrice();
+    error IncompleteRound();
 
     AggregatorV3Interface public immutable priceFeed;
 
@@ -32,15 +35,26 @@ contract ChainlinkOracleAdapter {
         stalePriceDelay = stalePriceDelay_;
     }
 
-    function latestPrice() external view returns (int256 answer, uint256 updatedAt) {
-        (, int256 price,, uint256 updated,) = priceFeed.latestRoundData();
+    function latestPrice() external view override returns (int256 answer, uint256 updatedAt) {
+        (
+            uint80 roundId,
+            int256 price,
+            uint256 startedAt,
+            uint256 updated,
+            uint80 answeredInRound) = priceFeed.latestRoundData(
+
+            );
+
+        if (answeredInRound < roundId) {
+            revert IncompleteRound();
+        }
+
+        if (startedAt == 0 || updated == 0 || updated > block.timestamp) {
+            revert StalePrice();
+            }
 
         if (price <= 0) {
             revert InvalidPrice();
-        }
-
-        if (updated > block.timestamp) {
-            revert StalePrice();
         }
 
         if (block.timestamp - updated > stalePriceDelay) {
