@@ -36,14 +36,8 @@ contract ChainlinkOracleAdapter is IPriceOracle {
     }
 
     function latestPrice() external view override returns (int256 answer, uint256 updatedAt) {
-        (
-            uint80 roundId,
-            int256 price,
-            uint256 startedAt,
-            uint256 updated,
-            uint80 answeredInRound) = priceFeed.latestRoundData(
-
-            );
+        (uint80 roundId, int256 price, uint256 startedAt, uint256 updated, uint80 answeredInRound) =
+            priceFeed.latestRoundData();
 
         if (answeredInRound < roundId) {
             revert IncompleteRound();
@@ -51,7 +45,7 @@ contract ChainlinkOracleAdapter is IPriceOracle {
 
         if (startedAt == 0 || updated == 0 || updated > block.timestamp) {
             revert StalePrice();
-            }
+        }
 
         if (price <= 0) {
             revert InvalidPrice();
