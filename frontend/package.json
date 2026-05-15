@@ -1,0 +1,26 @@
+{
+  "name": "predictx-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "React frontend for PredictX prediction market protocol",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\""
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "ethers": "^6.13.5",
+    "vite": "^6.0.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2"
+  }
+}
