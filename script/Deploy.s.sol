@@ -4,6 +4,8 @@ pragma solidity ^0.8.24;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
+import {IERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+
 import {GovernanceToken} from "../src/tokens/GovernanceToken.sol";
 import {OutcomeToken} from "../src/tokens/OutcomeToken.sol";
 import {LPToken} from "../src/tokens/LPToken.sol";
@@ -21,6 +23,10 @@ contract Deploy is Script {
 
         address deployer = vm.addr(deployerPrivateKey);
 
+        address collateralTokenAddress = vm.envAddress("COLLATERAL_TOKEN");
+
+        address oracleAddress = vm.envAddress("MOCK_ORACLE");
+
         vm.startBroadcast(deployerPrivateKey);
 
         GovernanceToken governanceToken = new GovernanceToken(deployer);
@@ -29,7 +35,7 @@ contract Deploy is Script {
 
         LPToken lpToken = new LPToken(deployer);
 
-        FeeVault feeVault = new FeeVault(governanceToken, deployer);
+        FeeVault feeVault = new FeeVault(IERC20(collateralTokenAddress), deployer);
 
         address[] memory proposers = new address[](0);
 
@@ -60,6 +66,10 @@ contract Deploy is Script {
         console.log("Governor:", address(governor));
 
         console.log("Factory:", address(factory));
+
+        console.log("CollateralToken:", collateralTokenAddress);
+
+        console.log("Oracle:", oracleAddress);
 
         vm.stopBroadcast();
     }

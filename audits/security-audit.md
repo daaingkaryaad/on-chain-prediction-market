@@ -10,13 +10,16 @@
 | Audit Date | 2026 |
 | Auditors | Ingkar, Ansar, Kadirzhan |
 | Target Network | Base Sepolia |
-| Repository | Private Academic Repository |
+| Chain ID | 84532 |
+| Deployment Status | Completed |
+| Verification Status | Completed |
+| Repository | Academic GitHub Repository |
 
 ---
 
 # 1. Executive Summary
 
-PredictX is a decentralized binary prediction market protocol built on Base Sepolia.
+PredictX is a decentralized binary prediction market protocol deployed on Base Sepolia.
 
 The protocol includes:
 
@@ -28,11 +31,14 @@ The protocol includes:
 - Timelocked governance execution
 - UUPS upgradeability
 - Chainlink oracle validation
+- mock oracle support for testnet demonstrations
 - CREATE and CREATE2 market deployment
+- Base Sepolia deployment and verification
 
 The review focused on:
 
 - reentrancy protection
+- Checks-Effects-Interactions ordering
 - oracle validation
 - access control
 - governance execution
@@ -41,14 +47,18 @@ The review focused on:
 - liquidity accounting
 - reward claiming logic
 - deterministic deployment safety
+- deployment correctness
 
-The protocol passed all implemented:
+The protocol passed:
 
 - unit tests
 - fuzz tests
 - invariant tests
+- fork tests
 - upgrade tests
 - governance lifecycle tests
+- gas tests
+- post-deployment verification
 
 Final testing metrics:
 
@@ -56,72 +66,97 @@ Final testing metrics:
 |---|---|
 | Total Tests | 137+ |
 | Line Coverage | 91.98% |
+| Statement Coverage | 88.89% |
 | Function Coverage | 96.25% |
 | Slither High Findings | 0 |
 | Slither Medium Findings | 0 |
+| Invariant Failures | 0 |
+| Post-Deployment Verification | Passed |
 
 ---
 
-# 2. Scope
+# 2. Deployment Summary
 
-## In-Scope Contracts
+## Base Sepolia Deployment
 
-| Contract | Purpose |
+| Contract | Address |
 |---|---|
-| PredictionMarket.sol | Core AMM prediction market |
-| PredictionMarketFactory.sol | Factory deployment |
-| PredictionMarketUpgradeable.sol | UUPS upgradeable implementation |
-| ProtocolGovernor.sol | Governance logic |
-| ProtocolTimelock.sol | Timelock execution |
-| GovernanceToken.sol | ERC20Votes token |
-| OutcomeToken.sol | ERC1155 outcome shares |
-| LPToken.sol | Liquidity provider token |
-| FeeVault.sol | ERC4626 fee vault |
-| ChainlinkOracleAdapter.sol | Oracle validation |
-| MockOracleAdapter.sol | Testing oracle |
-| AMMMath.sol | AMM pricing logic |
-| YulMath.sol | Optimized assembly math |
+| GovernanceToken | `0x2F6E705b05BE552D64272B84E85806163B087d03` |
+| OutcomeToken | `0xF1E2A7746B6F0909e761888b214433ec7A56C869` |
+| LPToken | `0xf7203d68c9ec1d73e1d5c77c78182E31A48ABf3F` |
+| FeeVault | `0x8E7e468e98a02e61eaD523709b82A86304A0E275` |
+| ProtocolTimelock | `0x59432A83AcF3dB27BB11b65a0271F9Df9c21074C` |
+| ProtocolGovernor | `0x77b883238BAe5511935697B08080a4Dd90C9dCF8` |
+| PredictionMarketFactory | `0xCF2A44203097275a975264a7C61798E12CE700aE` |
+| MockERC20 | `0xbA42AEeA2717Bb4bdBD7B80E8bEdc8b31B6BE8D2` |
+| MockOracleAdapter | `0x95E9428B717c80fb26588d65C64a4b37E299A8AC` |
 
----
+Deployment registry:
 
-## Out-of-Scope
+```text
+deployments/addresses.md
+```
 
-The following were intentionally excluded:
+Post-deployment verification script:
 
-- frontend React application
-- subgraph indexing layer
-- RPC providers
-- external wallet integrations
-- Base Sepolia infrastructure
-- Chainlink infrastructure internals
+script/VerifyDeployment.s.sol
 
----
+Verification result:
 
-# 3. Audit Methodology
+Deployment verification passed.
+Governor: 0x77b883238BAe5511935697B08080a4Dd90C9dCF8
+Timelock: 0x59432A83AcF3dB27BB11b65a0271F9Df9c21074C
+Factory: 0xCF2A44203097275a975264a7C61798E12CE700aE
+FeeVault: 0x8E7e468e98a02e61eaD523709b82A86304A0E275
+3. Scope
+3.1 In-Scope Contracts
+Contract	Purpose
+PredictionMarket.sol	Core AMM prediction market
+PredictionMarketFactory.sol	Factory deployment with CREATE and CREATE2
+PredictionMarketUpgradeable.sol	UUPS upgradeable implementation
+PredictionMarketUpgradeableV2.sol	Upgradeability test implementation
+ProtocolGovernor.sol	Governance logic
+ProtocolTimelock.sol	Timelock execution
+GovernanceToken.sol	ERC20Votes governance token
+OutcomeToken.sol	ERC1155 outcome shares
+LPToken.sol	Liquidity provider token
+FeeVault.sol	ERC4626 fee vault
+ChainlinkOracleAdapter.sol	Chainlink oracle validation
+MockOracleAdapter.sol	Testing and demo oracle
+MockChainlinkAggregator.sol	Chainlink mock aggregator
+AMMMath.sol	AMM pricing logic
+YulMath.sol	Optimized assembly math
+3.2 Out-of-Scope
 
-The audit combined:
+The following were not part of the smart contract audit scope:
 
-## 3.1 Manual Review
+React frontend implementation
+The Graph hosted infrastructure
+RPC provider reliability
+wallet provider behavior
+Base Sepolia network infrastructure
+Chainlink node infrastructure
+centralized frontend hosting
+4. Methodology
+4.1 Manual Review
 
-Manual inspection focused on:
+Manual review focused on:
 
-- privilege escalation
-- unsafe external calls
-- reserve accounting
-- upgradeability risks
-- access-control correctness
-- CEI ordering
-- governance attack vectors
-- oracle validation
-- arithmetic safety
-
----
-
-## 3.2 Static Analysis
+privilege escalation
+unsafe external calls
+reserve accounting
+upgradeability risks
+access-control correctness
+CEI ordering
+governance attack vectors
+oracle validation
+arithmetic safety
+deterministic deployment
+deployment configuration
+4.2 Static Analysis
 
 Tool used:
 
-```text
 Slither
 
 Final Slither result:
@@ -132,11 +167,11 @@ Final Slither result:
 Remaining informational findings:
 
 timestamp usage
-OpenZeppelin inherited event indexing notices
+inherited OpenZeppelin event indexing notices
 
-These findings were reviewed manually and determined acceptable for protocol behavior.
+These findings were reviewed manually and accepted.
 
-3.3 Unit Testing
+4.3 Unit Testing
 
 Implemented using:
 
@@ -152,7 +187,8 @@ upgrade authorization
 ERC4626 accounting
 oracle validation
 access-control enforcement
-3.4 Fuzz Testing
+deployment verification
+4.4 Fuzz Testing
 
 Fuzz testing validated:
 
@@ -160,10 +196,8 @@ AMM reserve transitions
 slippage bounds
 buy/sell consistency
 liquidity operations
-
-Fuzz tests executed across randomized inputs.
-
-3.5 Invariant Testing
+invalid slippage reverts
+4.5 Invariant Testing
 
 Invariant testing validated:
 
@@ -173,21 +207,38 @@ collateral accounting consistency
 market state consistency
 outcome supply bounds
 
-Invariant runs:
+Invariant result:
 
 256 runs
 128,000 calls per invariant
 0 invariant violations
-4. System Architecture Security Review
-4.1 PredictionMarket.sol
+4.6 Fork Testing
+
+Fork tests interact with real Ethereum mainnet protocols.
+
+Fork targets:
+
+Protocol	Purpose
+Chainlink ETH/USD Feed	Validate live feed reads
+USDC	Validate real ERC20 metadata and transfers
+Uniswap V2 Router	Validate real router pair and quote behavior
+
+Fork tests provide confidence that integration logic works against real deployed protocols rather than only mocks.
+
+5. System Architecture Security Review
+5.1 PredictionMarket.sol
 Overview
 
-Main protocol market contract responsible for:
+PredictionMarket.sol is the core market contract responsible for:
 
-trading
-liquidity management
-reward claiming
-oracle-based resolution
+buying YES shares
+buying NO shares
+selling YES shares
+selling NO shares
+adding liquidity
+removing liquidity
+resolving markets
+claiming rewards
 Security Properties
 Property	Status
 Reentrancy Protection	PASS
@@ -198,7 +249,7 @@ Reserve Validation	PASS
 SafeERC20 Usage	PASS
 Reentrancy Protection
 
-All external state-changing functions use:
+All relevant external state-changing functions use:
 
 nonReentrant
 
@@ -213,7 +264,7 @@ removeLiquidity()
 claimRewards()
 CEI Ordering
 
-State updates occur before external token transfers.
+State updates occur before external token transfers where applicable.
 
 Example:
 
@@ -221,7 +272,9 @@ claimed[msg.sender] = true;
 outcomeToken.burn(...);
 collateralToken.safeTransfer(...);
 
-This significantly reduces reentrancy risk.
+For sell and liquidity removal operations, reserve updates are applied before token burn and collateral transfer operations.
+
+This reduces reentrancy risk and makes state transitions easier to audit.
 
 Slippage Protection
 
@@ -231,22 +284,23 @@ AMMMath.validateSlippage(...)
 
 This protects users against:
 
-MEV manipulation
 reserve front-running
-unexpected reserve imbalance
+unexpected price impact
+MEV-related execution changes
+adverse AMM movement
 Reserve Safety
 
 The protocol prevents invalid reserve depletion:
 
-if (sharesOut >= reserve)
+if (sharesOut >= reserve) revert InsufficientLiquidity();
 
-and
+and:
 
-if (collateralOut >= reserve)
+if (collateralOut >= reserve) revert InsufficientLiquidity();
 
-These checks prevent invalid AMM states.
+These checks prevent impossible AMM states.
 
-4.2 PredictionMarketFactory.sol
+5.2 PredictionMarketFactory.sol
 CREATE and CREATE2 Review
 
 The factory supports:
@@ -259,6 +313,7 @@ CREATE2 deterministic deployment was reviewed for:
 salt collision safety
 deterministic address correctness
 deployment uniqueness
+predictable market address behavior
 
 No collision vulnerabilities were identified.
 
@@ -268,12 +323,12 @@ Factory deployment validates:
 
 zero addresses
 initial liquidity
-role permissions
+creator permissions
 
 Unauthorized deployment is prevented through:
 
 CREATOR_ROLE
-4.3 Upgradeability Review
+5.3 Upgradeability Review
 UUPS Proxy Security
 
 The upgradeable implementation uses:
@@ -295,7 +350,7 @@ The initializer uses:
 
 initializer
 
-and rejects repeated initialization.
+Repeated initialization reverts correctly.
 
 Upgrade Authorization
 
@@ -307,7 +362,7 @@ may upgrade implementations.
 
 Unauthorized upgrades revert correctly.
 
-4.4 Governance Review
+5.4 Governance Review
 Governance Components
 Component	Purpose
 GovernanceToken	Voting power
@@ -322,9 +377,9 @@ propose → vote → queue → execute
 Governance protections:
 
 Mechanism	Purpose
-Voting Delay	Prevent flash proposal execution
-Voting Period	Allow community participation
-Proposal Threshold	Prevent spam proposals
+Voting Delay	Prevent immediate proposal activation
+Voting Period	Allow participation
+Proposal Threshold	Prevent proposal spam
 Quorum	Require meaningful participation
 Timelock Delay	Delay execution
 Governance Attack Review
@@ -334,7 +389,7 @@ Mitigation:
 
 ERC20Votes snapshot checkpointing
 
-Voting power is measured historically.
+Voting power is measured historically. This prevents same-block borrowing from immediately controlling governance voting weight.
 
 Instant Malicious Execution
 
@@ -342,14 +397,32 @@ Mitigation:
 
 2-day timelock delay
 
-Users have time to react before execution.
+Users and maintainers have time to react before successful proposals execute.
 
 Proposal Spam
 
 Mitigation:
 
 1% proposal threshold
-4.5 Oracle Security Review
+
+Only token holders with sufficient voting power can create proposals.
+
+Whale Attack
+
+Risk:
+
+A large token holder can influence governance outcomes.
+
+Mitigation:
+
+quorum requirement
+voting period
+public proposal lifecycle
+timelock delay
+
+Residual risk remains if governance token supply becomes highly concentrated.
+
+5.5 Oracle Security Review
 Oracle Validation
 
 The Chainlink adapter validates:
@@ -378,18 +451,19 @@ block.timestamp - updatedAt > stalePriceDelay
 
 Assessment:
 
-Accepted.
+Accepted
 
 Reason:
 
 timestamp checks are necessary for market deadlines
 oracle freshness inherently requires time-based validation
+timestamp is not used as randomness
 validator timestamp manipulation range is too small to materially impact the protocol
 
 Severity:
 
 Informational
-4.6 ERC4626 Vault Review
+5.6 ERC4626 Vault Review
 FeeVault.sol
 
 The vault implements standardized ERC4626 accounting.
@@ -401,23 +475,146 @@ Share Accounting	PASS
 Deposit Validation	PASS
 Withdraw Accounting	PASS
 Access Control	PASS
-Inflation Attack Review
+ERC4626 Rounding Review
 
-The vault does not expose donation-based inflation vulnerabilities because:
+ERC4626 behavior was tested through deposit and withdraw flows.
 
-deposits are controlled
-accounting uses ERC4626 share logic
-test coverage validates asset accounting
-5. Findings Summary
-Final Findings Table
+Reviewed areas:
+
+share minting
+asset accounting
+withdrawal behavior
+total managed assets
+
+No rounding issue causing asset loss was identified in tested flows.
+
+5.7 Yul Assembly Review
+
+YulMath.sol includes isolated assembly helpers.
+
+Reviewed functions:
+
+min()
+max()
+mulDiv()
+
+Reviewed risks:
+
+unsafe memory writes
+unexpected overflow behavior
+division by zero
+incorrect return values
+
+mulDiv() includes denominator validation.
+
+No critical issue was identified.
+
+6. Reproduced and Fixed Vulnerability Case Studies
+6.1 Case Study 1 — Reentrancy Pattern in Market Exit Functions
+Severity
+
+Medium before mitigation.
+
+Location
+src/core/PredictionMarket.sol
+
+Affected functions:
+
+sellYes()
+sellNo()
+removeLiquidity()
+Description
+
+Static analysis detected a reentrancy-pattern warning because some state updates previously occurred after external token calls.
+
+Although the functions were protected with nonReentrant, the original ordering created an avoidable CEI weakness.
+
+Impact
+
+A malicious token implementation or unexpected external call behavior could attempt nested execution before reserves were fully updated.
+
+Proof of Concept
+
+The issue was reproduced through Slither static analysis.
+
+Finding category:
+
+reentrancy-no-eth
+Recommendation
+
+Apply Checks-Effects-Interactions ordering.
+
+Fix
+
+Reserve updates were moved before token burn and collateral transfer operations.
+
+Status
+Fixed
+6.2 Case Study 2 — Access-Control Protection for Privileged Functions
+Severity
+
+High if missing, prevented by design.
+
+Location
+src/tokens/OutcomeToken.sol
+src/tokens/LPToken.sol
+src/vault/FeeVault.sol
+src/core/PredictionMarket.sol
+src/core/PredictionMarketUpgradeable.sol
+Description
+
+Privileged functions must not be externally callable by unauthorized users.
+
+Reviewed privileged functionality:
+
+minting outcome shares
+minting LP tokens
+depositing protocol fees
+resolving markets
+upgrading implementations
+Impact
+
+If access control were missing, attackers could mint tokens, manipulate outcomes, upgrade logic, or alter fee accounting.
+
+Proof of Concept
+
+Before/after behavior is covered through revert-path tests:
+
+non-minter cannot mint outcome tokens
+non-minter cannot mint LP tokens
+non-role caller cannot deposit protocol fees
+non-resolver cannot resolve market
+non-upgrader cannot upgrade implementation
+non-admin cannot set mock oracle resolution
+Recommendation
+
+Use OpenZeppelin AccessControl and role-gated privileged functions.
+
+Fix
+
+Privileged functions are restricted using role checks.
+
+Status
+Fixed / Prevented by Design
+7. Findings Summary
+7.1 Final Findings Table
 Severity	Count
 Critical	0
 High	0
 Medium	0
 Low	0
-Informational	5
-6. Informational Findings
+Informational	2
+Gas	0
+8. Informational Findings
 INFO-01: Timestamp Dependence
+Severity
+
+Informational.
+
+Location
+src/core/PredictionMarket.sol
+src/oracle/ChainlinkOracleAdapter.sol
+src/oracle/MockOracleAdapter.sol
 Description
 
 Several contracts use:
@@ -436,38 +633,54 @@ Assessment
 
 Accepted.
 
-The manipulation range is insufficient to materially impact protocol behavior.
+The manipulation range is insufficient to materially impact protocol behavior. Timestamp is not used for randomness.
+
+Recommendation
+
+Document timestamp usage and avoid using it for randomness.
 
 Status
 Acknowledged
 INFO-02: OpenZeppelin Event Indexing Notices
+Severity
+
+Informational.
+
+Location
+OpenZeppelin Governor / Timelock / ERC1967 dependencies
 Description
 
-Slither flagged inherited OpenZeppelin events with non-indexed addresses.
+Slither flagged inherited OpenZeppelin events with non-indexed address parameters.
+
+Impact
+
+No direct security impact in project-owned contracts.
 
 Assessment
 
-Inherited OpenZeppelin implementation.
+Accepted as dependency-level informational output.
 
-No protocol-specific issue exists.
+Recommendation
+
+No action required.
 
 Status
 Accepted
-7. Gas and Bytecode Review
+9. Gas and Bytecode Review
 Contract Size Validation
 
 All contracts remain below:
 
-EIP-170 runtime limit
+EIP-170 runtime size limit: 24,576 bytes
 
 Largest contract:
 
 ProtocolGovernor.sol
 15,535 bytes runtime
 
-EIP-170 limit:
+Remaining margin:
 
-24,576 bytes
+9,041 bytes
 Gas Optimization Review
 
 Optimizations identified:
@@ -479,6 +692,8 @@ Yul assembly math helpers
 minimized storage writes
 CREATE2 deterministic deployment
 compact governance parameters
+SafeERC20 usage
+CEI ordering
 Yul Assembly Review
 
 YulMath.sol was reviewed for:
@@ -487,11 +702,9 @@ overflow behavior
 arithmetic correctness
 unsafe memory writes
 
-No critical issues identified.
+No critical issues were identified.
 
-Gas tests confirm reduced execution costs compared to standard Solidity implementations.
-
-8. Access Control Review
+10. Access Control Review
 Role Model
 Role	Contract	Permission
 RESOLVER_ROLE	PredictionMarket	Resolve markets
@@ -499,57 +712,127 @@ MINTER_ROLE	OutcomeToken	Mint shares
 MINTER_ROLE	LPToken	Mint LP tokens
 FEE_DEPOSITOR_ROLE	FeeVault	Deposit fees
 UPGRADER_ROLE	Upgradeable Market	Upgrade implementation
+PROPOSER_ROLE	ProtocolTimelock	Queue governance proposals
+CANCELLER_ROLE	ProtocolTimelock	Cancel queued proposals
 Review Outcome
 
 All privileged functions were confirmed protected.
 
-No missing authorization checks were identified.
+No missing authorization checks were identified in project-owned contracts.
 
-9. Centralization Risks
+11. Centralization Risks
 
 Current risks:
 
-Risk	Description
-Admin Roles	Initial deployment uses centralized admin
-Oracle Dependency	Markets depend on oracle correctness
-Governance Token Distribution	Voting power concentration possible
+Risk	Description	Mitigation
+Admin Roles	Initial deployment uses deployer-controlled roles	Transfer admin powers to Timelock
+Oracle Dependency	Markets depend on oracle correctness	Use Chainlink validation and stale checks
+Governance Token Distribution	Voting power concentration possible	Quorum, proposal threshold, public voting
+Upgrade Authority	Upgrade role can change implementation	Restrict upgrades through governance
+12. Governance Attack Analysis
+Flash Loan Governance Attack
 
-Mitigation plan:
+Mitigation:
 
-Transfer admin privileges to governance after deployment.
-10. Test Review
+ERC20Votes checkpointing
+voting delay
+proposal threshold
+
+Residual risk:
+
+governance token concentration remains a social/economic risk.
+Whale Attack
+
+Mitigation:
+
+quorum requirement
+timelock delay
+transparent proposal lifecycle
+
+Residual risk:
+
+a whale with enough voting power can influence governance.
+Proposal Spam
+
+Mitigation:
+
+1% proposal threshold
+Timelock Bypass
+
+Mitigation:
+
+Governor must queue through Timelock
+post-deployment verification checks proposer and canceller roles
+2-day minimum delay
+13. Oracle Attack Analysis
+Price Manipulation
+
+Risk:
+
+Oracle feed data may be manipulated if the external feed fails or is misconfigured.
+
+Mitigation:
+
+use Chainlink data feeds
+reject invalid price values
+reject incomplete rounds
+Stale Price
+
+Risk:
+
+Old data could resolve markets incorrectly.
+
+Mitigation:
+
+block.timestamp - updatedAt <= stalePriceDelay
+Feed Depeg / Incorrect Feed
+
+Risk:
+
+Wrong feed address or depegged underlying asset can produce incorrect outcomes.
+
+Mitigation:
+
+deployment verification
+feed documentation
+explicit environment configuration
+14. Test Review
 Test Types
 Test Type	Status
 Unit Tests	PASS
 Fuzz Tests	PASS
 Invariant Tests	PASS
+Fork Tests	PASS
 Upgrade Tests	PASS
 Governance Tests	PASS
 Gas Tests	PASS
+Deployment Verification	PASS
 Coverage
 Metric	Result
 Line Coverage	91.98%
 Statement Coverage	88.89%
 Function Coverage	96.25%
-11. Final Assessment
+15. Final Assessment
 
 PredictX demonstrates:
 
-strong modular architecture
+modular protocol architecture
 strong test coverage
 proper access-control separation
 safe governance execution
 validated oracle integration
 correct CEI ordering
 proper reentrancy protection
-deterministic deployment safety
+deterministic deployment support
 safe upgradeability practices
+verified Base Sepolia deployment
+post-deployment configuration validation
 
 No High or Medium severity findings were identified during the review.
 
 The protocol is suitable for educational deployment and further frontend/subgraph integration on Base Sepolia.
 
-12. Appendix A — Slither Summary
+16. Appendix A — Slither Summary
 
 Final Slither result:
 
@@ -559,15 +842,15 @@ Final Slither result:
 Remaining informational findings:
 
 timestamp usage
-openzeppelin inherited event indexing notices
+OpenZeppelin inherited event indexing notices
 
 Reviewed and accepted.
 
-13. Appendix B — Test Summary
+17. Appendix B — Test Summary
 
 Final automated testing result:
 
-137 tests passing
+137+ tests passing
 0 failures
 
 Invariant test result:
@@ -575,7 +858,21 @@ Invariant test result:
 256 invariant runs
 128,000 calls per invariant
 0 invariant violations
-14. Appendix C — Upgrade Validation
+
+Coverage result:
+
+Line Coverage: 91.98%
+Statement Coverage: 88.89%
+Function Coverage: 96.25%
+18. Appendix C — Fork Test Summary
+
+Fork tests validate integration with real deployed protocols:
+
+Fork Test	External Protocol
+ChainlinkFork.t.sol	Chainlink ETH/USD Feed
+USDCFork.t.sol	USDC
+UniswapV2Fork.t.sol	Uniswap V2 Router
+19. Appendix D — Upgrade Validation
 
 The following upgrade path was tested:
 
@@ -591,3 +888,27 @@ version increment
 unauthorized upgrade rejection
 
 All upgrade tests passed successfully.
+
+20. Appendix E — Deployment Verification
+
+Deployment verification script:
+
+script/VerifyDeployment.s.sol
+
+Verified:
+
+Governor voting delay
+Governor voting period
+proposal threshold
+Timelock delay
+Governor proposer role
+Governor canceller role
+deployed contract role configuration
+
+Output:
+
+Deployment verification passed.
+Governor: 0x77b883238BAe5511935697B08080a4Dd90C9dCF8
+Timelock: 0x59432A83AcF3dB27BB11b65a0271F9Df9c21074C
+Factory: 0xCF2A44203097275a975264a7C61798E12CE700aE
+FeeVault: 0x8E7e468e98a02e61eaD523709b82A86304A0E275
