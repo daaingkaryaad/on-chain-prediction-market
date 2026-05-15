@@ -1,0 +1,17 @@
+{
+  "name": "predictx-subgraph",
+  "version": "1.0.0",
+  "description": "The Graph subgraph for PredictX on-chain prediction market protocol",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy predictx/predictx-base-sepolia"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "^0.97.1",
+    "@graphprotocol/graph-ts": "^0.37.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

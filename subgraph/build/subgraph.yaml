@@ -1,0 +1,83 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: ethereum
+    name: PredictionMarketFactory
+    network: base-sepolia
+    source:
+      address: "0xCF2A44203097275a975264a7C61798E12CE700aE"
+      abi: PredictionMarketFactory
+      startBlock: 41546621
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Market
+        - ProtocolStats
+      abis:
+        - name: PredictionMarketFactory
+          file: PredictionMarketFactory/PredictionMarketFactory.json
+        - name: PredictionMarket
+          file: PredictionMarketFactory/PredictionMarket.json
+      eventHandlers:
+        - event: MarketCreated(indexed address,indexed bytes32,string)
+          handler: handleMarketCreated
+      file: PredictionMarketFactory/PredictionMarketFactory.wasm
+  - kind: ethereum
+    name: ProtocolGovernor
+    network: base-sepolia
+    source:
+      address: "0x77b883238BAe5511935697B08080a4Dd90C9dCF8"
+      abi: ProtocolGovernor
+      startBlock: 41546621
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - GovernanceProposal
+      abis:
+        - name: ProtocolGovernor
+          file: ProtocolGovernor/ProtocolGovernor.json
+      eventHandlers:
+        - event: ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)
+          handler: handleProposalCreated
+      file: PredictionMarketFactory/PredictionMarketFactory.wasm
+templates:
+  - kind: ethereum/contract
+    name: PredictionMarket
+    network: base-sepolia
+    source:
+      abi: PredictionMarket
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Market
+        - Trade
+        - LiquidityEvent
+        - RewardClaim
+        - User
+        - ProtocolStats
+      abis:
+        - name: PredictionMarket
+          file: PredictionMarket/PredictionMarket.json
+      eventHandlers:
+        - event: SharesPurchased(indexed address,indexed uint8,uint256,uint256)
+          handler: handleSharesPurchased
+        - event: SharesSold(indexed address,indexed uint8,uint256,uint256)
+          handler: handleSharesSold
+        - event: LiquidityAdded(indexed address,uint256,uint256)
+          handler: handleLiquidityAdded
+        - event: LiquidityRemoved(indexed address,uint256,uint256)
+          handler: handleLiquidityRemoved
+        - event: MarketResolved(indexed uint8,int256)
+          handler: handleMarketResolved
+        - event: RewardsClaimed(indexed address,uint256)
+          handler: handleRewardsClaimed
+      file: PredictionMarketFactory/PredictionMarketFactory.wasm
