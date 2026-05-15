@@ -17,21 +17,21 @@ The protocol includes:
 
 ---
 
-# Security Principles
+## Security Principles
 
-## Checks-Effects-Interactions (CEI)
+### Checks-Effects-Interactions (CEI)
 
 State mutations occur before external interactions where applicable to reduce reentrancy risk.
 
 This pattern is used in core market flows such as:
 
-- selling YES/NO shares
-- removing liquidity
-- claiming rewards
+- Selling YES/NO shares
+- Removing liquidity
+- Claiming rewards
 
 ---
 
-## Reentrancy Protection
+### Reentrancy Protection
 
 Externally callable state-changing functions use `ReentrancyGuard` where applicable.
 
@@ -47,7 +47,7 @@ Protected flows include:
 
 ---
 
-## Role-Based Access Control
+### Role-Based Access Control
 
 Administrative functionality is protected through OpenZeppelin `AccessControl`.
 
@@ -65,7 +65,7 @@ Critical roles include:
 
 ---
 
-## Timelock Governance
+### Timelock Governance
 
 Governance execution is protected through a timelock delay.
 
@@ -83,211 +83,272 @@ The governance lifecycle is:
 propose → vote → queue → execute
 ```
 
-Oracle Validation
+---
+
+### Oracle Validation
 
 Chainlink integrations validate:
 
-stale oracle responses
-incomplete rounds
-invalid prices
-zero timestamps
-future timestamps
+- Stale oracle responses
+- Incomplete rounds
+- Invalid prices
+- Zero timestamps
+- Future timestamps
 
 Oracle validation includes:
 
+```solidity
 answeredInRound >= roundId
 startedAt != 0
 updatedAt != 0
 updatedAt <= block.timestamp
 price > 0
-Slippage Protection
+```
+
+---
+
+### Slippage Protection
 
 Trading operations enforce minimum output validation to reduce slippage risks during swaps.
 
 Affected functions:
 
-buyYes()
-buyNo()
-sellYes()
-sellNo()
-Upgrade Safety
+- `buyYes()`
+- `buyNo()`
+- `sellYes()`
+- `sellNo()`
+
+---
+
+### Upgrade Safety
 
 Upgradeable contracts use the UUPS proxy pattern with restricted upgrade authorization.
 
 Upgrade authorization is limited through:
 
-UPGRADER_ROLE
+- `UPGRADER_ROLE`
 
 The V1 → V2 upgrade path is tested, including unauthorized upgrade rejection.
 
-Security Tooling
-Static Analysis
+---
+
+## Security Tooling
+
+### Static Analysis
 
 The protocol was analyzed using Slither.
 
+```bash
 python3 -m slither . --config-file slither.config.json
+```
 
 Result summary:
 
-Severity	Findings
-High	0
-Medium	0
+| Severity | Findings |
+|---|---:|
+| High | 0 |
+| Medium | 0 |
 
 Remaining informational findings are documented in the internal audit report.
 
-Testing Strategy
+---
+
+## Testing Strategy
 
 The testing suite includes:
 
-Unit tests
-Fuzz tests
-Invariant tests
-Fork tests
-Gas benchmarks
-Upgradeability tests
-Governance lifecycle tests
-Deployment verification script
-Coverage
+- Unit tests
+- Fuzz tests
+- Invariant tests
+- Fork tests
+- Gas benchmarks
+- Upgradeability tests
+- Governance lifecycle tests
+- Deployment verification script
+
+### Coverage
 
 Current test coverage:
 
-Metric	Coverage
-Line Coverage	91.98%
-Statement Coverage	88.89%
-Function Coverage	96.25%
-Fork Testing
+| Metric | Coverage |
+|---|---:|
+| Line Coverage | 91.98% |
+| Statement Coverage | 88.89% |
+| Function Coverage | 96.25% |
+
+### Fork Testing
 
 Fork tests validate interactions with real deployed protocols:
 
-Test	External Protocol
-ChainlinkFork.t.sol	Chainlink ETH/USD feed
-USDCFork.t.sol	USDC
-UniswapV2Fork.t.sol	Uniswap V2 Router
-Deployment Security
-Network
-Item	Value
-Network	Base Sepolia
-Chain ID	84532
-Deployment Status	Completed
-Verification Status	Completed
-Post-Deployment Verification
+| Test | External Protocol |
+|---|---|
+| `ChainlinkFork.t.sol` | Chainlink ETH/USD feed |
+| `USDCFork.t.sol` | USDC |
+| `UniswapV2Fork.t.sol` | Uniswap V2 Router |
+
+---
+
+## Deployment Security
+
+### Network
+
+| Item | Value |
+|---|---|
+| Network | `Base Sepolia` |
+| Chain ID | `84532` |
+| Deployment Status | Completed |
+| Verification Status | Completed |
+
+### Post-Deployment Verification
 
 Deployment configuration is checked using:
 
+```bash
 forge script script/VerifyDeployment.s.sol:VerifyDeployment \
   --rpc-url base_sepolia
+```
 
 The script verifies:
 
-Governor voting delay
-Governor voting period
-proposal threshold
-Timelock delay
-Governor proposer role
-Governor canceller role
-deployed role configuration
+- Governor voting delay
+- Governor voting period
+- Proposal threshold
+- Timelock delay
+- Governor proposer role
+- Governor canceller role
+- Deployed role configuration
 
 Expected output:
 
+```text
 Deployment verification passed.
-Known Risks
-Oracle Dependency
+```
+
+---
+
+## Known Risks
+
+### Oracle Dependency
 
 Prediction resolution depends on external oracle availability and correctness.
 
 Mitigations:
 
-stale price validation
-round completeness checks
-invalid price rejection
-configurable stale price delay
-mock oracle only used for controlled testnet/demo flows
-Governance Risk
+- Stale price validation
+- Round completeness checks
+- Invalid price rejection
+- Configurable stale price delay
+- Mock oracle only used for controlled testnet/demo flows
+
+### Governance Risk
 
 Governance-controlled upgrades may introduce protocol risk.
 
 Mitigations:
 
-timelock execution delay
-ERC20Votes governance
-proposal threshold
-quorum requirement
-public proposal lifecycle
-Timestamp Dependence
+- Timelock execution delay
+- ERC20Votes governance
+- Proposal threshold
+- Quorum requirement
+- Public proposal lifecycle
 
-Certain protocol operations depend on block.timestamp.
+### Timestamp Dependence
+
+Certain protocol operations depend on `block.timestamp`.
 
 Affected functionality:
 
-market resolution windows
-oracle freshness checks
+- Market resolution windows
+- Oracle freshness checks
 
 This is intentional and acceptable for the protocol design. Timestamp is not used as a randomness source.
 
-Centralized Initial Admin
+### Centralized Initial Admin
 
 Initial deployment uses a deployer-controlled admin account.
 
 Mitigation plan:
 
-transfer privileged roles to Timelock/governance
-document role ownership
-verify governance parameters after deployment
-Audit Status
-Review Type	Status
-Internal Audit	Complete
-Slither Analysis	Complete
-Unit/Fuzz/Invariant Tests	Complete
-Fork Tests	Complete
-Deployment Verification	Complete
-Formal External Audit	Pending
+- Transfer privileged roles to Timelock/governance
+- Document role ownership
+- Verify governance parameters after deployment
+
+---
+
+## Audit Status
+
+| Review Type | Status |
+|---|---|
+| Internal Audit | Complete |
+| Slither Analysis | Complete |
+| Unit/Fuzz/Invariant Tests | Complete |
+| Fork Tests | Complete |
+| Deployment Verification | Complete |
+| Formal External Audit | Pending |
 
 Internal audit report:
 
+```text
 audits/security-audit.md
-Reporting Vulnerabilities
+```
+
+---
+
+## Reporting Vulnerabilities
 
 If you discover a security vulnerability, report it responsibly.
 
-Contact
-Contact	Value
-Team	Ingkar, Ansar, Kadirzhan
-Network	Base Sepolia
-Responsible Disclosure
+### Contact
+
+| Contact | Value |
+|---|---|
+| Team | Ingkar, Ansar, Kadirzhan |
+| Network | Base Sepolia |
+
+### Responsible Disclosure
 
 Please avoid publicly disclosing vulnerabilities before remediation is available.
 
 Include:
 
-affected contracts
-reproduction steps
-severity assessment
-expected impact
-suggested mitigation, if available
-Emergency Response
+- Affected contracts
+- Reproduction steps
+- Severity assessment
+- Expected impact
+- Suggested mitigation, if available
+
+---
+
+## Emergency Response
 
 Potential emergency actions include:
 
-governance proposals
-timelock-controlled upgrades
-market disabling
-oracle replacement
-frontend warnings
-role revocation
-Dependencies
+- Governance proposals
+- Timelock-controlled upgrades
+- Market disabling
+- Oracle replacement
+- Frontend warnings
+- Role revocation
+
+---
+
+## Dependencies
 
 The protocol relies on audited OpenZeppelin libraries including:
 
-AccessControl
-ERC20Votes
-ERC20Permit
-ERC4626
-Governor
-TimelockController
-UUPSUpgradeable
-SafeERC20
-ReentrancyGuard
-Final Notes
+- `AccessControl`
+- `ERC20Votes`
+- `ERC20Permit`
+- `ERC4626`
+- `Governor`
+- `TimelockController`
+- `UUPSUpgradeable`
+- `SafeERC20`
+- `ReentrancyGuard`
+
+---
+
+## Final Notes
 
 Security is an ongoing process.
 

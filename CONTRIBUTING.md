@@ -1,12 +1,3 @@
-Next is `CONTRIBUTING.md`. This one quietly signals whether your repo is “serious engineering project” or “folder of suffering uploaded at 3AM.” Academia and industry both weirdly care about this. Civilization persists through markdown files and caffeine poisoning.
-
-Create:
-
-```txt
-CONTRIBUTING.md
-```
-
-````md
 # Contributing to PredictX
 
 Thank you for contributing to PredictX.

@@ -88,181 +88,258 @@ x * y = k
 
 Where:
 
-x = YES reserve
-y = NO reserve
-k = constant product invariant
-AMM Features
-0.3% fee.
-Slippage protection.
-YES/NO outcome trading.
-LP token minting.
-Liquidity add/remove flows.
-Reentrancy protection.
-Checks-Effects-Interactions ordering.
-Governance
+```x``` = YES reserve
+
+```y``` = NO reserve
+
+```k``` = constant product invariant
+
+### AMM Features
+- 0.3% fee.
+- Slippage protection.
+- YES/NO outcome trading.
+- LP token minting.
+- Liquidity add/remove flows.
+- Reentrancy protection.
+- Checks-Effects-Interactions ordering.
+
+---
+
+## Governance
 
 Governance uses the full OpenZeppelin Governor stack:
 
-ERC20Votes
-ERC20Permit
-Governor
-TimelockController
-Governance Lifecycle
+- ERC20Votes
+- ERC20Permit
+- Governor
+- TimelockController
+
+### Governance Lifecycle
+
+```txt
 propose → vote → queue → execute
-Governance Parameters
-Parameter	Value
-Voting Delay	1 day
-Voting Period	1 week
-Timelock Delay	2 days
-Proposal Threshold	1%
-Quorum	4%
-Technical Features
-Yul Assembly Optimizations
+```
+
+### Governance Parameters
+
+| Parameter | Value |
+|---|---|
+| Voting Delay | 1 day |
+| Voting Period | 1 week |
+| Timelock Delay | 2 days |
+| Proposal Threshold | 1% |
+| Quorum | 4% |
+
+---
+
+## Technical Features
+
+### Yul Assembly Optimizations
 
 The protocol includes isolated Yul assembly helpers in YulMath.sol.
 
-Function	Purpose
-min()	Minimum comparison
-max()	Maximum comparison
-mulDiv()	Multiplication/division helper
+| Function | Purpose |
+|---|---|
+| `min()` | Minimum comparison |
+| `max()` | Maximum comparison |
+| `mulDiv()` | Multiplication/division helper |
 
 Yul functions are benchmarked against pure Solidity equivalents using Foundry gas tests.
 
-ERC-4626 Vault
+---
 
-FeeVault.sol implements the ERC-4626 Tokenized Vault Standard.
+### ERC-4626 Vault
 
-Features
-Share-based accounting.
-Standardized deposit and withdraw behavior.
-Protocol fee accounting.
-Vault asset configuration using deployed collateral token.
-Chainlink Oracle Integration
+```FeeVault.sol``` implements the ERC-4626 Tokenized Vault Standard.
 
-ChainlinkOracleAdapter.sol integrates Chainlink Data Feeds.
+#### Features
+- Share-based accounting.
+- Standardized deposit and withdraw behavior.
+- Protocol fee accounting.
+- Vault asset configuration using deployed collateral token.
 
-Oracle Security Checks
-Stale price validation.
-Incomplete round rejection.
-Future timestamp rejection.
-Invalid zero/negative price rejection.
-answeredInRound >= roundId validation.
-answeredInRound >= roundId
-Security & Audit
-Security Measures
-ReentrancyGuard.
-Checks-Effects-Interactions.
-AccessControl-based authorization.
-SafeERC20 for token interactions.
-Timelock governance execution.
-Slippage protection.
-Oracle staleness checks.
-UUPS upgrade authorization.
-Deterministic deployment validation.
-Static Analysis
+### Chainlink Oracle Integration
+
+```ChainlinkOracleAdapter.sol``` integrates Chainlink Data Feeds.
+
+#### Oracle Security Checks
+- Stale price validation.
+- Incomplete round rejection.
+- Future timestamp rejection.
+- Invalid zero/negative price rejection.
+- answeredInRound >= roundId validation.
+
+```answeredInRound >= roundId```
+
+---
+
+## Security & Audit
+
+### Security Measures
+
+- ReentrancyGuard.
+- Checks-Effects-Interactions.
+- AccessControl-based authorization.
+- SafeERC20 for token interactions.
+- Timelock governance execution.
+- Slippage protection.
+- Oracle staleness checks.
+- UUPS upgrade authorization.
+- Deterministic deployment validation.
+
+### Static Analysis
 
 The protocol was analyzed using:
 
-Slither
-Forge Coverage
-Forge Fuzz Testing
-Forge Invariant Testing
-Audit Summary
-Tool	Result
-Slither	0 High findings
-Slither	0 Medium findings
-Unit Tests	Passing
-Fuzz Tests	Passing
-Invariant Tests	Passing
-Fork Tests	Passing
-Post-Deployment Verification	Passing
+- Slither
+- Forge Coverage
+- Forge Fuzz Testing
+- Forge Invariant Testing
+
+### Audit Summary
+
+| Tool | Result |
+|---|---|
+| Slither | 0 High findings |
+| Slither | 0 Medium findings |
+| Unit Tests | Passing |
+| Fuzz Tests | Passing |
+| Invariant Tests | Passing |
+| Fork Tests | Passing |
+| Post-Deployment Verification | Passing |
 
 Internal audit report:
 
-/audits/security-audit.md
-Deployment
-Network
-Item	Value
-Network	Base Sepolia
-Chain ID	84532
-Deployment Status	Completed
-Verification Status	Completed
-Verified Contract Addresses
-Contract	Address	Explorer
-GovernanceToken	0x2F6E705b05BE552D64272B84E85806163B087d03	BaseScan
-OutcomeToken	0xF1E2A7746B6F0909e761888b214433ec7A56C869	BaseScan
-LPToken	0xf7203d68c9ec1d73e1d5c77c78182E31A48ABf3F	BaseScan
-FeeVault	0x8E7e468e98a02e61eaD523709b82A86304A0E275	BaseScan
-PredictionMarketFactory	0xCF2A44203097275a975264a7C61798E12CE700aE	BaseScan
-ProtocolGovernor	0x77b883238BAe5511935697B08080a4Dd90C9dCF8	BaseScan
-ProtocolTimelock	0x59432A83AcF3dB27BB11b65a0271F9Df9c21074C	BaseScan
-MockERC20	0xbA42AEeA2717Bb4bdBD7B80E8bEdc8b31B6BE8D2	BaseScan
-MockOracleAdapter	0x95E9428B717c80fb26588d65C64a4b37E299A8AC	BaseScan
+```/audits/security-audit.md```
+
+---
+
+## Deployment
+### Network
+| Item | Value |
+|---|---|
+| Network | `Base Sepolia` |
+| Chain ID | `84532` |
+| Deployment Status | Completed |
+| Verification Status | Completed |
+
+
+### Verified Contract Addresses
+### Verified Contract Addresses
+
+| Contract | Address | Explorer |
+|---|---|---|
+| GovernanceToken | `0x2F6E705b05BE552D64272B84E85806163B087d03` | BaseScan |
+| OutcomeToken | `0xF1E2A7746B6F0909e761888b214433ec7A56C869` | BaseScan |
+| LPToken | `0xf7203d68c9ec1d73e1d5c77c78182E31A48ABf3F` | BaseScan |
+| FeeVault | `0x8E7e468e98a02e61eaD523709b82A86304A0E275` | BaseScan |
+| PredictionMarketFactory | `0xCF2A44203097275a975264a7C61798E12CE700aE` | BaseScan |
+| ProtocolGovernor | `0x77b883238BAe5511935697B08080a4Dd90C9dCF8` | BaseScan |
+| ProtocolTimelock | `0x59432A83AcF3dB27BB11b65a0271F9Df9c21074C` | BaseScan |
+| MockERC20 | `0xbA42AEeA2717Bb4bdBD7B80E8bEdc8b31B6BE8D2` | BaseScan |
+| MockOracleAdapter | `0x95E9428B717c80fb26588d65C64a4b37E299A8AC` | BaseScan |
 
 Full deployment registry:
 
-/deployments/addresses.md
-Testing & Coverage
-Test Types
-Test Type	Description
-Unit Tests	Functional correctness and revert paths
-Fuzz Tests	Randomized input validation
-Invariant Tests	Protocol state invariants
-Fork Tests	Real mainnet protocol integrations
-Gas Tests	Gas benchmarking and Yul comparison
-Upgrade Tests	UUPS V1 → V2 upgrade validation
-Governance Tests	Full propose → vote → queue → execute lifecycle
-Current Test Status
-Metric	Result
-Total Tests	137+
-Line Coverage	91.98%
-Statement Coverage	88.89%
-Function Coverage	96.25%
-Invariant Failures	0
-Slither High Findings	0
-Slither Medium Findings	0
-Run Tests
+```/deployments/addresses.md```
+
+---
+
+## Testing & Coverage
+
+### Test Types
+
+| Test Type | Description |
+|---|---|
+| Unit Tests | Functional correctness and revert paths |
+| Fuzz Tests | Randomized input validation |
+| Invariant Tests | Protocol state invariants |
+| Fork Tests | Real mainnet protocol integrations |
+| Gas Tests | Gas benchmarking and Yul comparison |
+| Upgrade Tests | UUPS V1 → V2 upgrade validation |
+| Governance Tests | Full propose → vote → queue → execute lifecycle |
+
+
+### Current Test Status
+
+| Metric | Result |
+|---|---|
+| Total Tests | 163 |
+| Line Coverage | 90.54% |
+| Function Coverage | 92.22% |
+| Invariant Failures | 0 |
+| Slither High Findings | 0 |
+| Slither Medium Findings | 0 |
+
+
+### Run Tests
+```bash
 forge test
-Run Fork Tests
+```
+### Run Fork Tests
+```bash
 forge test --match-path test/fork/* --fork-url $MAINNET_RPC_URL
-Run Coverage
+```
+### Run Coverage
+```bash
 forge coverage
-Run Static Analysis
+```
+### Run Static Analysis
+```bash
 python3 -m slither . --config-file slither.config.json
-Run Gas Snapshot
+```
+### Run Gas Snapshot
+```bash
 forge snapshot
-Run Build Size Check
+```
+### Run Build Size Check
+```bash
 forge build --sizes
-Deployment Scripts
-Deploy Mock Contracts
+```
+
+---
+
+## Deployment Scripts
+
+### Deploy Mock Contracts
+```bash
 forge script script/DeployMocks.s.sol:DeployMocks \
   --rpc-url base_sepolia \
   --broadcast \
   --verify
-Deploy Protocol Contracts
+  ```
+### Deploy Protocol Contracts
+```bash
 forge script script/Deploy.s.sol:Deploy \
   --rpc-url base_sepolia \
   --broadcast \
   --verify
-Verify Deployment Configuration
+  ```
+### Verify Deployment Configuration
+```bash
 forge script script/VerifyDeployment.s.sol:VerifyDeployment \
   --rpc-url base_sepolia
-
-Expected output:
-
+```
+### Expected output:
+```
 Deployment verification passed.
 Governor: 0x77b883238BAe5511935697B08080a4Dd90C9dCF8
 Timelock: 0x59432A83AcF3dB27BB11b65a0271F9Df9c21074C
 Factory: 0xCF2A44203097275a975264a7C61798E12CE700aE
 FeeVault: 0x8E7e468e98a02e61eaD523709b82A86304A0E275
-Environment Variables
+```
 
-Create .env from .env.example.
+---
 
+## Environment Variables
+
+Create ```.env``` from ```.env.example.```
+```bash
 cp .env.example .env
+```
 
 Required variables:
-
+```
 PRIVATE_KEY=
 BASE_SEPOLIA_RPC_URL=
 BASESCAN_API_KEY=
@@ -278,76 +355,93 @@ FEE_VAULT=0x8E7e468e98a02e61eaD523709b82A86304A0E275
 TIMELOCK=0x59432A83AcF3dB27BB11b65a0271F9Df9c21074C
 GOVERNOR=0x77b883238BAe5511935697B08080a4Dd90C9dCF8
 FACTORY=0xCF2A44203097275a975264a7C61798E12CE700aE
+```
 
-Never commit .env.
+Never commit ```.env.```
 
-Frontend & Indexing
-Frontend
+---
+
+## Frontend & Indexing
+### Frontend
 
 Frontend application location:
 
-/frontend
-Stack
-React
-Ethers.js / Viem
-Wagmi
-MetaMask wallet connection
-Base Sepolia network detection
-Start Frontend
+```/frontend```
+
+### Stack
+- React
+- Ethers.js / Viem
+- Wagmi
+- MetaMask wallet connection
+- Base Sepolia network detection
+
+### Start Frontend
+```bash
 cd frontend
 npm install
 npm run dev
-Required Features
-Wallet connection.
-Wrong-network detection.
-Token balance display.
-Voting power display.
-Market reserve display.
-YES/NO trading.
-Liquidity management.
-Governance proposal list.
-Vote button.
-Transaction error handling.
-Subgraph
+```
+
+### Required Features
+- Wallet connection.
+- Wrong-network detection.
+- Token balance display.
+- Voting power display.
+- Market reserve display.
+- YES/NO trading.
+- Liquidity management.
+- Governance proposal list.
+- Vote button.
+- Transaction error handling.
+
+### Subgraph
 
 Graph indexing configuration:
 
-/subgraph
+```/subgraph```
 
 Subgraph endpoint:
 
-TBD
+```TBD```
 
 Indexed entities:
 
-Market
-Trade
-LiquidityPosition
-Proposal
-UserPosition
+- Market
+- Trade
+- LiquidityPosition
+- Proposal
+- UserPosition
 
 Required GraphQL queries are documented in the subgraph documentation.
 
-CI/CD
+---
+
+## CI/CD
 
 GitHub Actions pipeline automates:
 
-forge fmt --check
-forge build --sizes
-forge test
-forge coverage
-forge snapshot
-slither . --config-file slither.config.json
+- forge fmt --check
+- forge build --sizes
+- forge test
+- forge coverage
+- forge snapshot
+- slither . --config-file slither.config.json
 
 Pipeline file:
 
-/.github/workflows/ci.yml
+```/.github/workflows/ci.yml```
 
 CI runs on:
 
-push
-pull request
-Repository Structure
+- push
+- pull request
+
+---
+
+## Repository Structure
+
+```text
+.
 ├── src/
 │   ├── core/
 │   ├── governance/
@@ -371,21 +465,37 @@ Repository Structure
 ├── deployments/
 ├── docs/
 └── .github/workflows/
-Build Instructions
-Install Dependencies
+```
+
+---
+
+## Build Instructions
+### Install Dependencies
+```bash
 forge install
-Build Contracts
+```
+### Build Contracts
+```bash
 forge build --sizes
-Format Contracts
+```
+### Format Contracts
+```bash
 forge fmt
-Documentation
-Document	Path
-Architecture Document	/docs/architecture.md
-Security Audit Report	/audits/security-audit.md
-Gas Report	/gas-reports/gas-report.md
-Deployment Registry	/deployments/addresses.md
-Security Policy	/SECURITY.md
-Contribution Guide	/CONTRIBUTING.md
-License
+```
+
+---
+
+## Documentation
+
+| Document | Path |
+|---|---|
+| Architecture Document | `/docs/architecture.md` |
+| Security Audit Report | `/audits/security-audit.md` |
+| Gas Report | `/gas-reports/gas-report.md` |
+| Deployment Registry | `/deployments/addresses.md` |
+| Security Policy | `/SECURITY.md` |
+| Contribution Guide | `/CONTRIBUTING.md` |
+
+## License
 
 MIT License
