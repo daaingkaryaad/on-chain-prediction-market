@@ -6,7 +6,7 @@ on:
 
 jobs:
   contracts:
-    name: Contracts
+    name: Contracts and Slither
     runs-on: ubuntu-latest
 
     steps:
@@ -19,6 +19,8 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Show Foundry version
         run: forge --version
@@ -41,22 +43,6 @@ jobs:
       - name: Generate coverage
         run: forge coverage
 
-  slither:
-    name: Slither
-    runs-on: ubuntu-latest
-    needs: contracts
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: stable
-
       - name: Install Python
         uses: actions/setup-python@v5
         with:
@@ -64,9 +50,6 @@ jobs:
 
       - name: Install Slither
         run: pip install slither-analyzer
-
-      - name: Install dependencies
-        run: forge install
 
       - name: Run Slither
         run: slither . --config-file slither.config.json
@@ -86,6 +69,8 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build contracts for ABI artifacts
         run: forge build
