@@ -203,3 +203,22 @@ h2 {
     grid-template-columns: 1fr;
   }
 }
+
+.proposalList {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.proposalItem {
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 1rem;
+  background: #f8fafc;
+}
+
+.proposalVoteBox {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+}

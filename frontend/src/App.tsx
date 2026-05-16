@@ -10,6 +10,7 @@ import VaultPanel from "./components/VaultPanel";
 import GovernancePanel from "./components/GovernancePanel";
 import MarketCreator from "./components/MarketCreator";
 import SubgraphStats from "./components/SubgraphStats";
+import ProposalList from "./components/ProposalList";
 
 declare global {
   interface Window {
@@ -167,6 +168,12 @@ export default function App() {
         <MarketCreator readProvider={readProvider} account={wallet.account} />
 
         <SubgraphStats />
+        <ProposalList
+          signer={wallet.signer}
+          readProvider={readProvider}
+          disabled={!wallet.signer || wrongNetwork}
+          onError={setError}
+        />
       </section>
     </main>
   );
