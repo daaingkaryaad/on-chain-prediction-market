@@ -40,14 +40,28 @@ export default function ProtocolOverview({ readProvider, account }: Props) {
       const vault = new Contract(CONTRACTS.feeVault, FeeVaultAbi, readProvider);
       const factory = new Contract(CONTRACTS.factory, FactoryAbi, readProvider);
 
-      const marketsCount = await factory.getMarketsCount();
-      const totalManagedAssets = await vault.totalManagedAssets();
+      let marketsCount = "0";
+      let totalManagedAssets = "0";
+
+      try {
+        const count = await factory.getMarketsCount();
+        marketsCount = count.toString();
+      } catch {
+        marketsCount = "0";
+      }
+
+      try {
+        const managedAssets = await vault.totalManagedAssets();
+        totalManagedAssets = formatUnits(managedAssets, 18);
+      } catch {
+        totalManagedAssets = "0";
+      }
 
       if (!account) {
         setData((prev) => ({
           ...prev,
-          marketsCount: marketsCount.toString(),
-          totalManagedAssets: formatUnits(totalManagedAssets, 18),
+          marketsCount,
+          totalManagedAssets,
         }));
         return;
       }
@@ -59,11 +73,11 @@ export default function ProtocolOverview({ readProvider, account }: Props) {
         delegate,
         vaultShares,
       ] = await Promise.all([
-        collateral.balanceOf(account),
-        govToken.balanceOf(account),
-        govToken.getVotes(account),
-        govToken.delegates(account),
-        vault.balanceOf(account),
+        safeRead(() => collateral.balanceOf(account), 0n),
+        safeRead(() => govToken.balanceOf(account), 0n),
+        safeRead(() => govToken.getVotes(account), 0n),
+        safeRead(() => govToken.delegates(account), ""),
+        safeRead(() => vault.balanceOf(account), 0n),
       ]);
 
       setData({
@@ -72,8 +86,8 @@ export default function ProtocolOverview({ readProvider, account }: Props) {
         votingPower: formatUnits(votingPower, 18),
         delegate,
         vaultShares: formatUnits(vaultShares, 18),
-        totalManagedAssets: formatUnits(totalManagedAssets, 18),
-        marketsCount: marketsCount.toString(),
+        totalManagedAssets,
+        marketsCount,
       });
     }
 
@@ -101,6 +115,14 @@ export default function ProtocolOverview({ readProvider, account }: Props) {
       )}
     </div>
   );
+}
+
+async function safeRead<T>(read: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await read();
+  } catch {
+    return fallback;
+  }
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
