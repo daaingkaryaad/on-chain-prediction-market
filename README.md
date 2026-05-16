@@ -264,8 +264,8 @@ Full deployment registry:
 
 | Metric | Result |
 |---|---|
-| Total Tests | 163 |
-| Line Coverage | 90.54% |
+| Total Tests | 172 |
+| Line Coverage | 91.4% |
 | Function Coverage | 92.22% |
 | Invariant Failures | 0 |
 | Slither High Findings | 0 |

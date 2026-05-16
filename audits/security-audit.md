@@ -64,8 +64,8 @@ Final testing metrics:
 
 | Metric | Result |
 |---|---:|
-| Total Tests | 163 |
-| Contract Line Coverage | 90.54% |
+| Total Tests | 172 |
+| Contract Line Coverage | 91.4% |
 | Global Function Coverage | 92.22% |
 | Slither High Findings | 0 |
 | Slither Medium Findings | 0 |

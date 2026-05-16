@@ -16,7 +16,7 @@ Foundry includes deployment scripts in the global coverage table. Deployment scr
 
 | Metric | Result |
 |---|---:|
-| Total Tests | 163 |
+| Total Tests | 172 |
 | Failed Tests | 0 |
 | Skipped Tests | 0 |
 
@@ -28,9 +28,9 @@ Coverage across `src/` contracts:
 
 | Metric | Result |
 |---|---:|
-| Covered Lines | 316 |
+| Covered Lines | 319 |
 | Total Lines | 349 |
-| Line Coverage | 90.54% |
+| Line Coverage | 91.4% |
 
 This satisfies the required `≥90%` contract line coverage threshold.
 
@@ -98,7 +98,7 @@ The PredictX smart contract suite passes all tests and satisfies the required co
 
 | Metric | Result |
 |---|---:|
-| Tests Passed | 163 |
+| Tests Passed | 172 |
 | Failed Tests | 0 |
 | Skipped Tests | 0 |
-| `src/` Line Coverage | 90.54% |
+| `src/` Line Coverage | 91.4% |

@@ -824,15 +824,15 @@ The test suite includes:
 Current test count:
 
 ```text
-163 tests passing
+172 tests passing
 ```
 
 Coverage:
 
 ```text
-Contract Line Coverage: 90.54%
+Contract Line Coverage: 91.4%
 Global Function Coverage: 92.22%
-Total Tests: 163 passing
+Total Tests: 172 passing
 ```
 
 Fork tests interact with real mainnet protocols:
