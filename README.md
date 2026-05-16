@@ -344,6 +344,7 @@ PRIVATE_KEY=
 BASE_SEPOLIA_RPC_URL=
 BASESCAN_API_KEY=
 MAINNET_RPC_URL=
+VITE_SUBGRAPH_URL=
 
 COLLATERAL_TOKEN=0xbA42AEeA2717Bb4bdBD7B80E8bEdc8b31B6BE8D2
 MOCK_ORACLE=0x95E9428B717c80fb26588d65C64a4b37E299A8AC
@@ -402,7 +403,9 @@ Graph indexing configuration:
 
 Subgraph endpoint:
 
-```TBD```
+```text
+https://api.studio.thegraph.com/query/1753352/predictx-base-sepolia/v0.0.1
+```
 
 Indexed entities:
 
