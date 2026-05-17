@@ -10,7 +10,7 @@ Each market follows a lifecycle:
 Created → Open → Resolved → Claimed
 ```
 
-Users interact with the system through a React frontend. Market and trading events are indexed through The Graph subgraph for efficient querying and analytics.
+Users interact with the system through a React frontend. Market, trading, liquidity, claim, and governance events are indexed through The Graph subgraph for efficient querying and analytics.
 
 The protocol combines:
 
@@ -103,7 +103,7 @@ External services:
 +------------------+        +------------------+
 ```
 
-![alt text](image-1.png)
+![alt text](system-context.png)
 
 ---
 
@@ -153,7 +153,7 @@ FeeVault ERC4626
 Collateral Token
 ```
 
-![alt text](image-1.png)
+![alt text](container.png)
 
 ---
 
@@ -208,7 +208,7 @@ Responsibilities:
 - Executes buy and sell operations
 - Handles liquidity provision and removal
 - Resolves the market through oracle data
-- Allows winners to claim payouts
+- Allows holders of winning outcome shares to claim collateral payouts
 
 Main functions:
 
@@ -355,11 +355,13 @@ Governance parameters:
 | Quorum | 4% |
 | Proposal Threshold | 1% |
 
-The full governance lifecycle is tested:
-
+The full governance lifecycle is covered in Foundry tests:
 ```text
-propose → vote → queue → execute
+delegate → propose → vote → queue → execute
 ```
+
+The deployed frontend demo separately shows live proposal indexing and on-chain proposal state loading by `proposalId`.
+
 
 ### 6.9 ProtocolTimelock.sol
 
@@ -431,7 +433,7 @@ PredictionMarket
  v
 OutcomeToken
 ```
-![alt text](image.png)
+![alt text](buy-yes-shares.png)
 
 Security properties:
 
@@ -462,7 +464,7 @@ PredictionMarket
 User
 ```
 
-![alt text](image.png)
+![alt text](sell-yes-shares.png)
 
 Security properties:
 
@@ -500,7 +502,7 @@ ProtocolTimelock
 Target Contract
 ```
 
-![alt text](image.png)
+![alt text](governance-execution.png)
 
 Security properties:
 
@@ -530,7 +532,7 @@ PredictionMarket
 Users claim rewards
 ```
 
-![alt text](image.png)
+![alt text](market-resolution.png)
 
 Security properties:
 
@@ -541,9 +543,9 @@ Security properties:
 
 ---
 
-## 11.1 Sequence Diagram: ERC4626 Vault Deposit
+## 11. Sequence Diagram: ERC4626 Vault Deposit
 
-![alt text](image.png)
+![alt text](erc4626-vault-depo.png)
 
 Security properties:
 
@@ -555,7 +557,7 @@ Security properties:
 
 ---
 
-## 11.1 Access Control Model
+### 11.1 Access Control Model
 
 | Contract | Role | Permission |
 |---|---|---|
@@ -684,21 +686,7 @@ Used in:
 PredictionMarket.sol
 ```
 
-Market states:
-
-- Open
-- Locked
-- Resolved
-- Disputed
-- Cancelled
-
-The current implementation primarily uses:
-
-```text
-Open → Resolved
-```
-
-Additional states are included for extensibility.
+The current production flow uses `Open → Resolved → Claimed`. Additional enum states are reserved for future dispute/cancellation extensions and are not part of the current tested main flow unless explicitly covered by tests.
 
 ---
 
@@ -729,8 +717,15 @@ Additional states are included for extensibility.
 | `collateralToken` | `address` | Collateral token address |
 | `versionNumber` | `uint256` | Version marker |
 
-Upgradeable storage is intentionally minimal to reduce storage collision risk.
+Storage collision analysis:
 
+`PredictionMarketUpgradeableV2` appends new functionality without reordering, deleting, or changing the type of existing V1 storage variables. The V1 layout is:
+
+1. `marketQuestion`
+2. `collateralToken`
+3. `versionNumber`
+
+The V2 implementation preserves this order and does not insert new variables before existing storage slots. Upgrade tests deploy V1 behind a UUPS proxy, upgrade to V2, and verify that the original initialized values remain readable after the upgrade. This demonstrates that the V1 → V2 upgrade path does not corrupt storage.
 The upgrade path is validated through:
 
 ```text
@@ -755,6 +750,72 @@ PredictionMarketUpgradeable V1 → PredictionMarketUpgradeableV2
 | AccessControl roles | Fee depositor authorization |
 | `totalAssets` | Managed asset accounting |
 
+### 13.5 PredictionMarketFactory.sol
+
+| Variable / Feature | Type | Description |
+|---|---|---|
+| `collateralToken` | `address` | Collateral asset used by created markets |
+| `outcomeToken` | `address` | Shared ERC1155 outcome token |
+| `lpToken` | `address` | Shared ERC20 LP token |
+| `oracleAdapter` | `address` | Oracle adapter used for market resolution |
+| `markets` | `address[]` | List of deployed markets |
+| `isMarket` | `mapping(address => bool)` | Tracks whether an address was deployed by the factory |
+| AccessControl storage | OpenZeppelin internal | Admin and factory management roles |
+
+### 13.6 OutcomeToken.sol
+
+| Variable / Feature | Description |
+|---|---|
+| ERC1155 balances | Tracks balances by token ID and account |
+| ERC1155 operator approvals | Tracks operator approvals |
+| AccessControl roles | Restricts minting and burning |
+| Token supply tracking | Tracks total supply per outcome token ID |
+
+### 13.7 LPToken.sol
+
+| Variable / Feature | Description |
+|---|---|
+| ERC20 balances | LP balances per liquidity provider |
+| ERC20 allowances | Standard ERC20 allowances |
+| ERC20 total supply | Total LP token supply |
+| AccessControl roles | Restricts minting and burning |
+
+### 13.8 ProtocolGovernor.sol
+
+| Variable / Feature | Description |
+|---|---|
+| Governor proposal storage | Tracks proposal snapshots, deadlines, votes, and execution status |
+| ERC20Votes token reference | Governance token used for voting power |
+| Timelock reference | Timelock used for queued proposal execution |
+| Governor settings | Voting delay, voting period, proposal threshold |
+| Quorum configuration | 4% quorum threshold |
+
+### 13.9 ProtocolTimelock.sol
+
+| Variable / Feature | Description |
+|---|---|
+| Timelock operation storage | Tracks queued operations and timestamps |
+| Role storage | Tracks proposer, canceller, executor, and admin roles |
+| Minimum delay | 2-day execution delay |
+
+### 13.10 ChainlinkOracleAdapter.sol
+
+| Variable | Type | Description |
+|---|---|---|
+| `priceFeed` | `AggregatorV3Interface` | Chainlink price feed |
+| `stalePriceDelay` | `uint256` | Maximum accepted price age |
+
+### 13.11 MockOracleAdapter.sol
+
+| Variable / Feature | Description |
+|---|---|
+| Resolution mapping | Stores deterministic market resolutions |
+| Update timestamps | Tracks when mock resolutions were updated |
+| Max staleness | Configurable freshness window for demo/test resolution |
+
+### 13.12 Libraries
+
+`AMMMath.sol` and `YulMath.sol` are stateless libraries and do not define persistent storage.
 ---
 
 ## 14. Trust Assumptions
@@ -768,6 +829,20 @@ The protocol assumes:
 - ERC20 collateral tokens behave according to the ERC20 standard
 - Users understand slippage parameters before submitting transactions
 - Market resolution timestamps are acceptable for deadline checks
+
+### 14.1 Role Powers and Failure Modes
+
+| Actor / Role | Powers | Risk if Compromised | Mitigation |
+|---|---|---|---|
+| `DEFAULT_ADMIN_ROLE` | Grants and revokes roles during setup | Could assign privileged roles incorrectly | Intended to be transferred/renounced in production governance setup |
+| `RESOLVER_ROLE` | Resolves markets using oracle result | Malicious or premature resolution attempt | Resolution requires market timing checks and oracle validation |
+| `MINTER_ROLE` | Mints outcome or LP tokens through authorized contracts | Unauthorized inflation if assigned incorrectly | Role restricted to protocol contracts |
+| `FEE_DEPOSITOR_ROLE` | Deposits protocol fees into FeeVault | Incorrect fee accounting if abused | Role-gated vault deposit path |
+| `UPGRADER_ROLE` | Authorizes UUPS upgrades | Malicious implementation upgrade | Upgrade role restricted and tested |
+| `ProtocolTimelock` | Queues and executes successful governance actions after delay | Malicious governance majority could pass harmful proposal | Voting delay, voting period, quorum, proposal threshold, and 2-day execution delay |
+| Token holders | Delegate and vote on proposals | Whale concentration or vote buying | Quorum, proposal threshold, and timelock delay provide reaction time |
+
+If a privileged role-holder is compromised before governance handoff, the attacker could misuse that role within its permission scope. For production, privileged roles should be transferred to the Timelock or tightly controlled multisig, and unnecessary deployer privileges should be renounced after verification.
 
 ---
 
@@ -863,6 +938,42 @@ slither . --config-file slither.config.json
 
 The pipeline prevents merging when formatting, tests, coverage, build, or security checks fail.
 
+### 17.1 Subgraph Data Model and Queries
+
+Indexed entities include:
+
+- `Market`
+- `Trade`
+- `LiquidityEvent`
+- `RewardClaim`
+- `ProtocolStat`
+- `GovernanceProposal`
+
+Documented GraphQL queries are provided in:
+
+```text
+subgraph/README.md
+```
+
+The frontend uses the deployed subgraph endpoint to read governance proposals and indexed protocol data.
+
+### 17.2 Frontend CI checks:
+
+```bash
+cd frontend
+npm ci
+npm run format:check
+npm run build
+```
+
+### 17.3 Subgraph CI checks:
+
+```bash
+cd subgraph
+npm ci
+npm run codegen
+npm run build
+```
 ---
 
 ## 18. Deployment Architecture
@@ -894,6 +1005,14 @@ Post-deployment verification confirms:
 - Role assignment
 - Deployed contract addresses
 - Deployment consistency
+
+### 18.1 
+
+Gas benchmark results are documented in:
+
+```text
+gas-reports/gas-report.md
+```
 
 ---
 

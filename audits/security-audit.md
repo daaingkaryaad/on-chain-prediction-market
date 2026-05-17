@@ -72,6 +72,23 @@ Final testing metrics:
 | Invariant Failures | 0 |
 | Post-Deployment Verification | Passed |
 
+### 1.1. Tests' before/after behavior
+
+Before/after behavior is covered by:
+
+```text
+test/unit/PredictionMarket.t.sol
+test/unit/PredictionMarketExtraCoverage.t.sol
+test/invariant/PredictionMarketInvariant.t.sol
+```
+
+Relevant checks include:
+
+- sell and remove-liquidity flows cannot be reentered due to `nonReentrant`
+- reserves are updated before external collateral transfer
+- invalid reserve-depleting outputs revert
+- reward claiming cannot be repeated
+
 ---
 
 ## 2. Deployment Summary
@@ -115,6 +132,12 @@ FeeVault: 0x8E7e468e98a02e61eaD523709b82A86304A0E275
 ---
 
 ## 3. Scope
+
+| Item | Value |
+|---|---|
+| Commit Hash | `57940b1870a533549c6da2928750256f757d9c94`|
+| Branch | `main` or final submission branch |
+| Repository | `https://github.com/daaingkaryaad/on-chain-prediction-market` |
 
 ### 3.1 In-Scope Contracts
 
@@ -605,6 +628,17 @@ Reviewed risks:
 
 No critical issue was identified.
 
+### 5.8 Solidity Safety Checklist
+
+| Requirement | Status |
+|---|---|
+| No `tx.origin` authorization | PASS |
+| No `transfer` / `send` ETH primitives | PASS |
+| ERC20 operations use `SafeERC20` | PASS |
+| External return values handled | PASS |
+| `block.timestamp` not used as randomness | PASS |
+| Privileged functions role-gated | PASS |
+
 ---
 
 ## 6. Reproduced and Fixed Vulnerability Case Studies
@@ -894,6 +928,24 @@ Current risks:
 | Governance Token Distribution | Voting power concentration possible | Quorum, proposal threshold, public voting |
 | Upgrade Authority | Upgrade role can change implementation | Restrict upgrades through governance |
 
+### 11.1 Role Compromise Analysis
+
+| Role / Actor | Compromise Impact | Mitigation |
+|---|---|---|
+| `DEFAULT_ADMIN_ROLE` | Could grant or revoke privileged roles during setup | Production setup should transfer admin powers to Timelock or a controlled multisig and renounce unnecessary deployer roles |
+| `RESOLVER_ROLE` | Could attempt incorrect market resolution | Resolution still depends on market timing and oracle validation checks |
+| `MINTER_ROLE` | Could inflate outcome or LP token supply if assigned incorrectly | Role is restricted to protocol contracts; unauthorized mint tests verify reverts |
+| `FEE_DEPOSITOR_ROLE` | Could affect fee deposit accounting | Restricted vault deposit path and tests verify non-role callers revert |
+| `UPGRADER_ROLE` | Could upgrade to malicious implementation | Upgrade authorization is role-gated and tested; production role should be controlled by governance |
+| Governance token whale | Could pass harmful proposals if enough voting power is concentrated | Quorum, proposal threshold, voting delay, public voting period, and 2-day Timelock delay |
+| ProtocolTimelock | Can execute successful queued governance operations after delay | Timelock cannot act alone; operations must pass Governor proposal lifecycle |
+
+### 11.2 Treasury / FeeVault Control
+
+The FeeVault represents protocol fee accounting. In the production governance model, privileged fee/vault administration should be controlled by `ProtocolTimelock`, so changes to fee handling pass through Governor approval and the 2-day Timelock delay.
+
+The Base Sepolia deployment is verified through `script/VerifyDeployment.s.sol`, which checks Governor and Timelock configuration and role assignments.
+
 ---
 
 ## 12. Governance Attack Analysis
@@ -997,9 +1049,8 @@ Mitigation:
 
 | Metric | Result |
 |---|---:|
-| Line Coverage | 91.98% |
-| Statement Coverage | 88.89% |
-| Function Coverage | 96.25% |
+| Line Coverage | 91.4% |
+| Function Coverage | 92.22% |
 
 ---
 
@@ -1041,6 +1092,11 @@ Remaining informational findings:
 
 Reviewed and accepted.
 
+Full Slither output is stored in:
+
+```text
+audits/slither-output.txt
+```
 ---
 
 ## 17. Appendix B — Test Summary
@@ -1048,7 +1104,7 @@ Reviewed and accepted.
 Final automated testing result:
 
 ```text
-137+ tests passing
+172 tests passing
 0 failures
 ```
 
@@ -1063,9 +1119,8 @@ Invariant test result:
 Coverage result:
 
 ```text
-Line Coverage: 91.98%
-Statement Coverage: 88.89%
-Function Coverage: 96.25%
+Line Coverage: 91.4%
+Function Coverage: 92.22%
 ```
 
 ---

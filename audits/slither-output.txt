@@ -1,0 +1,29 @@
+/Users/ingkarpahr/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+INFO:Slither:slither.config.json has an unknown key: checklist : False
+'forge clean' running (wd: /Users/ingkarpahr/Desktop/BT2_final)
+'forge config --json' running
+'forge build --build-info --skip ./test/** ./script/** --force' running (wd: /Users/ingkarpahr/Desktop/BT2_final)
+INFO:Detectors:
+Detector: timestamp
+PredictionMarket.resolveMarket() (src/core/PredictionMarket.sol#280-295) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp < resolutionTime (src/core/PredictionMarket.sol#281)
+ChainlinkOracleAdapter.latestPrice() (src/oracle/ChainlinkOracleAdapter.sol#38-59) uses timestamp for comparisons
+	Dangerous comparisons:
+	- startedAt == 0 || updated == 0 || updated > block.timestamp (src/oracle/ChainlinkOracleAdapter.sol#46)
+	- block.timestamp - updated > stalePriceDelay (src/oracle/ChainlinkOracleAdapter.sol#54)
+MockOracleAdapter.getResolution(bytes32) (src/oracle/MockOracleAdapter.sol#57-65) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp > resolution.updatedAt + maxStaleness (src/oracle/MockOracleAdapter.sol#62)
+MockOracleAdapter.isResolved(bytes32) (src/oracle/MockOracleAdapter.sol#67-75) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp <= resolution.updatedAt + maxStaleness (src/oracle/MockOracleAdapter.sol#74)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp
+INFO:Detectors:
+Detector: unindexed-event-address
+Event IGovernor.ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string) (lib/openzeppelin-contracts/contracts/governance/IGovernor.sol#118-128) has address parameters but no indexed parameters
+Event GovernorTimelockControl.TimelockChange(address,address) (lib/openzeppelin-contracts/contracts/governance/extensions/GovernorTimelockControl.sol#31) has address parameters but no indexed parameters
+Event IERC1967.AdminChanged(address,address) (lib/openzeppelin-contracts/contracts/interfaces/IERC1967.sol#18) has address parameters but no indexed parameters
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unindexed-event-address-parameters
+INFO:Slither:. analyzed (99 contracts with 97 detectors), 7 result(s) found

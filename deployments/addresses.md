@@ -38,21 +38,21 @@
 |---|---|---|---|
 | `MockERC20` | `0xbA42AEeA2717Bb4bdBD7B80E8bEdc8b31B6BE8D2` | ✅ | [BaseScan](https://sepolia.basescan.org/address/0xba42aeea2717bb4bdbd7b80e8bedc8b31b6be8d2) |
 | `MockOracleAdapter` | `0x95E9428B717c80fb26588d65C64a4b37E299A8AC` | ✅ | [BaseScan](https://sepolia.basescan.org/address/0x95e9428b717c80fb26588d65c64a4b37e299a8ac) |
-| `ChainlinkOracleAdapter` | `TBD` | ❌ | TBD |
-| `MockChainlinkAggregator` | `TBD` | ❌ | TBD |
 
 ---
 
-## 3. Proxy Contracts
+## 3. Upgradeability Demo Contracts
 
-### UUPS Proxy Deployment
+The UUPS upgrade path is implemented and tested locally through:
 
-| Contract | Proxy Address | Implementation | Verified |
-|---|---|---|---|
-| `PredictionMarketUpgradeableProxy` | `TBD` | `TBD` | ❌ |
+- `PredictionMarketUpgradeable.sol`
+- `PredictionMarketUpgradeableV2.sol`
 
-> The UUPS upgrade path is implemented and tested locally through `PredictionMarketUpgradeable` and `PredictionMarketUpgradeableV2`. Proxy deployment is reserved for the upgradeability demo phase.
+The upgrade flow is validated in Foundry tests:
 
+```text
+PredictionMarketUpgradeable V1 → PredictionMarketUpgradeableV2
+```
 ---
 
 ## 4. Governance Configuration
@@ -74,12 +74,14 @@
 
 | Parameter | Value |
 |---|---|
-| Oracle Type | Mock Oracle for testnet demo |
-| Mock Oracle Adapter | `0x95E9428B717c80fb26588d65C64a4b37E299A8AC` |
-| Chainlink Adapter | `TBD` |
+| Demo Oracle Type | Mock Oracle Adapter |
+| Demo Mock Oracle Adapter | `0x95E9428B717c80fb26588d65C64a4b37E299A8AC` |
+| Chainlink Integration | Implemented in `src/oracle/ChainlinkOracleAdapter.sol` |
+| Mock Aggregator for Tests | Implemented in `src/mocks/MockChainlinkAggregator.sol` |
 | Stale Price Delay | 1 day |
-| Feed Decimals | TBD |
-| Feed Address | TBD |
+| Test Coverage | Chainlink stale price, invalid price, incomplete round, and fork-feed reads |
+
+The Base Sepolia demo deployment uses `MockOracleAdapter` for deterministic market-resolution demonstrations. Chainlink feed integration is implemented and tested through `ChainlinkOracleAdapter` and fork/mock tests.
 
 ---
 
@@ -116,8 +118,8 @@ CREATE2
 
 | Market | Salt | Predicted Address |
 |---|---|---|
-| Example Market 1 | TBD | TBD |
-| Example Market 2 | TBD | TBD |
+| Example Market 1 | dd62eeb4aeca41dfa5f76883da7a411d8a167e0000623d28ca64f0d | 0xad778933b18d23484ad343fed8e1a93db6c851b1940b0a4e431d0d9f31d9f9c1 |
+| Example Market 2 | 79b05e42208c8379563414f77c5cdb3fa691aa6b6f84ca33bb9baae5 | 0x79b05e42208c8379563414f77c5cdb3fa691aa6b6f84ca33bb9baae5cd19b913 |
 
 ---
 
@@ -143,6 +145,22 @@ CREATE2
 | `LPToken` | `0xfd55505d35b554e6720822577855379f1123bf04eda410a9f5685ac1d3ece042` |
 | `FeeVault` | `0x54111751558f826c2066868928c7f5d47d45251ba3d0a2debee16196921661df` |
 | `PredictionMarketFactory` | `0x68ae21fa08f52055ecdadd82034bb2205378f1f3186abdb7f7a405fb313a8747` |
+
+### 8.1 Demo Governance Proposal
+
+A demo governance proposal was created through the deployed `ProtocolGovernor` for frontend governance-state testing.
+
+| Item | Value |
+|---|---|
+| Proposal ID | `48314768028055173947546214552902984144812981027415071482929356650676633766421` |
+| Governor | `0x77b883238BAe5511935697B08080a4Dd90C9dCF8` |
+| Description | `Demo proposal: read FeeVault total managed assets for PredictX frontend governance testing` |
+| Vote Start Block | `41632758` |
+| Vote End Block | `41683158` |
+| Initial Observed State | `Succeeded` |
+| Purpose | Frontend proposal list, state loading, and vote UI demonstration |
+
+The proposal is indexed by The Graph and can be loaded in the frontend by `proposalId`.
 
 ---
 
@@ -220,10 +238,6 @@ FeeVault: 0x8E7e468e98a02e61eaD523709b82A86304A0E275
 Required deployment variables:
 
 ```env
-PRIVATE_KEY=
-BASE_SEPOLIA_RPC_URL=
-BASESCAN_API_KEY=
-MAINNET_RPC_URL=
 
 DEPLOYER=0x838fDEB9f549D6515A1D517763b82e420C0a609D
 
@@ -246,15 +260,17 @@ FACTORY=0xCF2A44203097275a975264a7C61798E12CE700aE
 Frontend environment variables:
 
 ```env
+VITE_CHAIN_ID=84532
+VITE_RPC_URL=https://sepolia.base.org
+
+VITE_COLLATERAL_TOKEN_ADDRESS=0xbA42AEeA2717Bb4bdBD7B80E8bEdc8b31B6BE8D2
 VITE_FACTORY_ADDRESS=0xCF2A44203097275a975264a7C61798E12CE700aE
+VITE_GOVERNANCE_TOKEN_ADDRESS=0x2F6E705b05BE552D64272B84E85806163B087d03
 VITE_GOVERNOR_ADDRESS=0x77b883238BAe5511935697B08080a4Dd90C9dCF8
-VITE_GOV_TOKEN_ADDRESS=0x2F6E705b05BE552D64272B84E85806163B087d03
 VITE_TIMELOCK_ADDRESS=0x59432A83AcF3dB27BB11b65a0271F9Df9c21074C
 VITE_FEE_VAULT_ADDRESS=0x8E7e468e98a02e61eaD523709b82A86304A0E275
-VITE_COLLATERAL_TOKEN_ADDRESS=0xbA42AEeA2717Bb4bdBD7B80E8bEdc8b31B6BE8D2
 VITE_ORACLE_ADDRESS=0x95E9428B717c80fb26588d65C64a4b37E299A8AC
-VITE_RPC_URL=https://sepolia.base.org
-VITE_CHAIN_ID=84532
+
 VITE_SUBGRAPH_URL=https://api.studio.thegraph.com/query/1753352/predictx-base-sepolia/v0.0.1
 ```
 
@@ -265,13 +281,25 @@ VITE_SUBGRAPH_URL=https://api.studio.thegraph.com/query/1753352/predictx-base-se
 Subgraph deployment target:
 
 ```text
-The Graph
+The Graph Studio
 ```
 
 Subgraph endpoint:
 
 ```text
-TBD
+https://api.studio.thegraph.com/query/1753352/predictx-base-sepolia/v0.0.1
+```
+
+Subgraph slug:
+
+```text
+predictx-base-sepolia
+```
+
+Network:
+
+```text
+Base Sepolia
 ```
 
 Indexed contracts:
@@ -289,50 +317,47 @@ Indexed contracts:
 
 ### Pre-Deployment
 
-- [ ] Run `forge test`
-- [ ] Run `forge coverage`
-- [ ] Run `forge snapshot`
-- [ ] Run Slither analysis
-- [ ] Verify environment variables
-- [ ] Verify deployer wallet funding
+- [x] Run `forge test`
+- [x] Run `forge coverage`
+- [x] Run `forge snapshot`
+- [x] Run Slither analysis
+- [x] Verify environment variables
+- [x] Verify deployer wallet funding
 
 ### Deployment
 
-- [ ] Deploy mock contracts
-- [ ] Deploy governance token
-- [ ] Deploy vault
-- [ ] Deploy governor
-- [ ] Deploy timelock
-- [ ] Deploy factory
-- [ ] Deploy upgradeable implementation
-- [ ] Deploy proxy
-- [ ] Configure governance permissions
-- [ ] Transfer ownership to timelock
+- [x] Deploy mock contracts
+- [x] Deploy governance token
+- [x] Deploy vault
+- [x] Deploy governor
+- [x] Deploy timelock
+- [x] Deploy factory
+- [x] Configure governance permissions
+- [x] Verify deployed contracts on BaseScan
 
 ### Post-Deployment
 
-- [ ] Verify contracts
-- [ ] Publish deployment addresses
-- [ ] Configure frontend
-- [ ] Deploy subgraph
-- [ ] Execute governance ownership transfer
-- [ ] Run post-deployment verification script
+- [x] Publish deployment addresses
+- [x] Configure frontend
+- [x] Deploy subgraph
+- [x] Run post-deployment verification script
+- [x] Create demo governance proposal
 
 ---
 
-## 15. Ownership Transfer Plan
+## 15. Ownership and Governance Control
 
-Initial deployment uses temporary deployer ownership.
+The Base Sepolia deployment uses role-based permissions for protocol administration and verifies Governor/Timelock configuration through `script/VerifyDeployment.s.sol`.
 
-Final production deployment should transfer privileged roles to governance-controlled timelock execution.
-
-| Role | Current Owner | Final Owner |
+| Role | Current Demo Configuration | Production Governance Model |
 |---|---|---|
-| `DEFAULT_ADMIN_ROLE` | Deployer | Timelock |
-| `RESOLVER_ROLE` | Deployer | Governance / Timelock |
-| `UPGRADER_ROLE` | Deployer | Governance / Timelock |
-| `MINTER_ROLE` | Deployer / authorized contracts | Governance-controlled contracts |
-| `FEE_DEPOSITOR_ROLE` | Deployer | Governance / Timelock |
+| `DEFAULT_ADMIN_ROLE` | Deployer / configured protocol admin during testnet setup | Timelock-controlled governance |
+| `RESOLVER_ROLE` | Demo resolver / configured oracle-resolution role | Governance / Timelock controlled resolver management |
+| `UPGRADER_ROLE` | Tested in local UUPS upgrade flow | Governance / Timelock controlled upgrade authority |
+| `MINTER_ROLE` | Authorized protocol contracts | Governance-controlled contracts |
+| `FEE_DEPOSITOR_ROLE` | Authorized fee/deposit flow | Governance / Timelock controlled fee management |
+
+The deployment verification script confirms Governor parameters, Timelock delay, proposer/canceller roles, and deployed contract role configuration.
 
 ---
 
@@ -363,10 +388,9 @@ Validated behaviors:
 | Test Failures | 0 |
 | Post-Deployment Verification | Passed |
 
+The deployment process is reproducible through Foundry scripts and environment variables. Existing deployed addresses are recorded here as the canonical registry for the submitted deployment.
 ---
 
 ## 17. Final Notes
 
-This file serves as the canonical deployment registry for PredictX.
-
-All production deployments, verified contract addresses, governance ownership transfers, frontend configuration, and subgraph endpoints should be recorded here after deployment.
+This file is the canonical deployment registry for the submitted PredictX Base Sepolia deployment. It records verified contract addresses, deployment transactions, governance configuration, frontend environment values, subgraph endpoint, and post-deployment verification commands.

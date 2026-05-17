@@ -6,6 +6,7 @@ Coverage was generated with Foundry using:
 
 ```bash
 forge coverage
+forge test -vvv
 ```
 
 Foundry includes deployment scripts in the global coverage table. Deployment scripts are not part of the audited smart contract runtime scope, so the assignment-relevant coverage is calculated across the `src/` contract directory.
@@ -38,28 +39,43 @@ This satisfies the required `≥90%` contract line coverage threshold.
 
 ## Foundry Global Coverage
 
-Foundry global coverage includes scripts under `script/`, which are deployment utilities rather than runtime protocol contracts.
+Foundry global coverage includes deployment scripts under `script/` and test/helper contracts. These files are useful for deployment and testing, but they are not part of the audited runtime protocol scope.
 
 | Metric | Result |
 |---|---:|
-| Global Line Coverage | 77.80% |
-| Global Statement Coverage | 71.98% |
-| Global Branch Coverage | 41.84% |
+| Global Line Coverage | 78.44% |
+| Global Statement Coverage | 72.36% |
+| Global Branch Coverage | 43.88% |
 | Global Function Coverage | 92.22% |
 
-The global line coverage is lower because the following deployment scripts are included with `0%` coverage:
+The global line coverage is lower mainly because the following deployment scripts are included with `0%` coverage:
 
 - `script/Deploy.s.sol`
 - `script/DeployMocks.s.sol`
 - `script/VerifyDeployment.s.sol`
 
+## Assignment-Relevant Coverage
+
+The assignment-relevant metric is calculated across Solidity contracts under `src/`, excluding deployment scripts under `script/`.
+
+| Metric | Result |
+|---|---:|
+| Covered Lines | 319 |
+| Total Lines | 349 |
+| Line Coverage | 91.40% |
+
+Calculation:
+
+```text
+319 covered lines / 349 total lines = 91.40%
+```
 ---
 
 ## Contract Coverage Table
 
 | Contract | Line Coverage | Function Coverage |
 |---|---:|---:|
-| `PredictionMarket.sol` | 89.23% | 100.00% |
+| `PredictionMarket.sol` | 91.54% | 100.00% |
 | `PredictionMarketFactory.sol` | 100.00% | 100.00% |
 | `PredictionMarketUpgradeable.sol` | 87.50% | 100.00% |
 | `ProtocolGovernor.sol` | 80.95% | 80.00% |
@@ -90,6 +106,20 @@ The test suite includes:
 - Governance lifecycle tests
 - Upgradeability tests
 
+## CI Validation
+
+Coverage is also generated in GitHub Actions as part of the `Contracts and Slither` job.
+
+The CI pipeline runs:
+
+```bash
+forge fmt --check
+forge build --sizes
+forge test -vvv
+forge snapshot
+forge coverage
+slither . --config-file slither.config.json
+```
 ---
 
 ## Conclusion

@@ -60,6 +60,24 @@ PredictX includes a UUPS upgradeability implementation using OpenZeppelin upgrad
 - Double-initialization prevention.
 - Upgrade tests covering unauthorized upgrade rejection.
 
+## Prerequisites
+
+- Foundry
+- Node.js 20
+- npm
+- Python 3.11 for Slither
+- MetaMask
+- Base Sepolia ETH for transactions
+
+## Setup
+
+```bash
+git clone https://github.com/daaingkaryaad/on-chain-prediction-market.git
+cd on-chain-prediction-market
+forge install
+forge build
+forge test
+```
 ---
 
 ## Factory Pattern
@@ -225,19 +243,18 @@ Internal audit report:
 
 
 ### Verified Contract Addresses
-### Verified Contract Addresses
 
 | Contract | Address | Explorer |
 |---|---|---|
-| GovernanceToken | `0x2F6E705b05BE552D64272B84E85806163B087d03` | BaseScan |
-| OutcomeToken | `0xF1E2A7746B6F0909e761888b214433ec7A56C869` | BaseScan |
-| LPToken | `0xf7203d68c9ec1d73e1d5c77c78182E31A48ABf3F` | BaseScan |
-| FeeVault | `0x8E7e468e98a02e61eaD523709b82A86304A0E275` | BaseScan |
-| PredictionMarketFactory | `0xCF2A44203097275a975264a7C61798E12CE700aE` | BaseScan |
-| ProtocolGovernor | `0x77b883238BAe5511935697B08080a4Dd90C9dCF8` | BaseScan |
-| ProtocolTimelock | `0x59432A83AcF3dB27BB11b65a0271F9Df9c21074C` | BaseScan |
-| MockERC20 | `0xbA42AEeA2717Bb4bdBD7B80E8bEdc8b31B6BE8D2` | BaseScan |
-| MockOracleAdapter | `0x95E9428B717c80fb26588d65C64a4b37E299A8AC` | BaseScan |
+| GovernanceToken | `0x2F6E705b05BE552D64272B84E85806163B087d03` | [BaseScan](https://sepolia.basescan.org/address/0x2f6e705b05be552d64272b84e85806163b087d03) |
+| OutcomeToken | `0xF1E2A7746B6F0909e761888b214433ec7A56C869` | [BaseScan](https://sepolia.basescan.org/address/0xf1e2a7746b6f0909e761888b214433ec7a56c869) |
+| LPToken | `0xf7203d68c9ec1d73e1d5c77c78182E31A48ABf3F` | [BaseScan](https://sepolia.basescan.org/address/0xf7203d68c9ec1d73e1d5c77c78182e31a48abf3f) |
+| FeeVault | `0x8E7e468e98a02e61eaD523709b82A86304A0E275` | [BaseScan](https://sepolia.basescan.org/address/0x8e7e468e98a02e61ead523709b82a86304a0e275) |
+| PredictionMarketFactory | `0xCF2A44203097275a975264a7C61798E12CE700aE` | [BaseScan](https://sepolia.basescan.org/address/0xcf2a44203097275a975264a7c61798e12ce700ae) |
+| ProtocolGovernor | `0x77b883238BAe5511935697B08080a4Dd90C9dCF8` | [BaseScan](https://sepolia.basescan.org/address/0x77b883238bae5511935697b08080a4dd90c9dcf8) |
+| ProtocolTimelock | `0x59432A83AcF3dB27BB11b65a0271F9Df9c21074C` | [BaseScan](https://sepolia.basescan.org/address/0x59432a83acf3db27bb11b65a0271f9df9c21074c) |
+| MockERC20 | `0xbA42AEeA2717Bb4bdBD7B80E8bEdc8b31B6BE8D2` | [BaseScan](https://sepolia.basescan.org/address/0xba42aeea2717bb4bdbd7b80e8bedc8b31b6be8d2) |
+| MockOracleAdapter | `0x95E9428B717c80fb26588d65C64a4b37E299A8AC` | [BaseScan](https://sepolia.basescan.org/address/0x95e9428b717c80fb26588d65c64a4b37e299a8ac) |
 
 Full deployment registry:
 
@@ -344,21 +361,17 @@ PRIVATE_KEY=
 BASE_SEPOLIA_RPC_URL=
 BASESCAN_API_KEY=
 MAINNET_RPC_URL=
-VITE_SUBGRAPH_URL=
-
-COLLATERAL_TOKEN=0xbA42AEeA2717Bb4bdBD7B80E8bEdc8b31B6BE8D2
-MOCK_ORACLE=0x95E9428B717c80fb26588d65C64a4b37E299A8AC
-
-GOVERNANCE_TOKEN=0x2F6E705b05BE552D64272B84E85806163B087d03
-OUTCOME_TOKEN=0xF1E2A7746B6F0909e761888b214433ec7A56C869
-LP_TOKEN=0xf7203d68c9ec1d73e1d5c77c78182E31A48ABf3F
-FEE_VAULT=0x8E7e468e98a02e61eaD523709b82A86304A0E275
-TIMELOCK=0x59432A83AcF3dB27BB11b65a0271F9Df9c21074C
-GOVERNOR=0x77b883238BAe5511935697B08080a4Dd90C9dCF8
-FACTORY=0xCF2A44203097275a975264a7C61798E12CE700aE
+VITE_CHAIN_ID=84532
+VITE_RPC_URL=https://sepolia.base.org
+VITE_COLLATERAL_TOKEN_ADDRESS=0xbA42AEeA2717Bb4bdBD7B80E8bEdc8b31B6BE8D2
+VITE_FACTORY_ADDRESS=0xCF2A44203097275a975264a7C61798E12CE700aE
+VITE_GOVERNANCE_TOKEN_ADDRESS=0x2F6E705b05BE552D64272B84E85806163B087d03
+VITE_GOVERNOR_ADDRESS=0x77b883238BAe5511935697B08080a4Dd90C9dCF8
+VITE_TIMELOCK_ADDRESS=0x59432A83AcF3dB27BB11b65a0271F9Df9c21074C
+VITE_FEE_VAULT_ADDRESS=0x8E7e468e98a02e61eaD523709b82A86304A0E275
+VITE_ORACLE_ADDRESS=0x95E9428B717c80fb26588d65C64a4b37E299A8AC
+VITE_SUBGRAPH_URL=https://api.studio.thegraph.com/query/1753352/predictx-base-sepolia/v0.0.1
 ```
-
-Never commit ```.env.```
 
 ---
 
@@ -371,29 +384,44 @@ Frontend application location:
 
 ### Stack
 - React
-- Ethers.js / Viem
-- Wagmi
-- MetaMask wallet connection
-- Base Sepolia network detection
+- TypeScript
+- Ethers.js
+- MetaMask wallet provider
+- Base Sepolia
+- The Graph subgraph endpoint
 
 ### Start Frontend
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-### Required Features
-- Wallet connection.
-- Wrong-network detection.
-- Token balance display.
+### Set up Subgraph
+```bash
+cd subgraph
+npm ci
+npm run codegen
+npm run build
+```
+
+### Implemented Frontend Features
+
+- MetaMask wallet connection.
+- Base Sepolia network detection.
+- Wrong-network warning and switch prompt.
+- Collateral token balance display.
+- Governance token balance display.
 - Voting power display.
-- Market reserve display.
-- YES/NO trading.
-- Liquidity management.
-- Governance proposal list.
-- Vote button.
-- Transaction error handling.
+- Delegate address display.
+- Vault shares and managed assets display.
+- Mock collateral minting.
+- ERC20 approve + ERC4626 vault deposit flow.
+- Governance vote delegation.
+- Governance proposal list from The Graph.
+- On-chain proposal state loading by `proposalId`.
+- Vote option selector and vote submission control for Active proposals.
+- Transaction and network error messages.
 
 ### Subgraph
 
@@ -421,24 +449,25 @@ Required GraphQL queries are documented in the subgraph documentation.
 
 ## CI/CD
 
-GitHub Actions pipeline automates:
+GitHub Actions runs on every `push` and `pull_request`.
 
-- forge fmt --check
-- forge build --sizes
-- forge test
-- forge coverage
-- forge snapshot
-- slither . --config-file slither.config.json
+Pipeline jobs:
+
+### Contracts and Slither
+
+```bash
+forge fmt --check
+forge build --sizes
+forge test -vvv
+forge snapshot
+forge coverage
+slither . --config-file slither.config.json
+```
 
 Pipeline file:
-
-```/.github/workflows/ci.yml```
-
-CI runs on:
-
-- push
-- pull request
-
+```
+.github/workflows/ci.yml
+```
 ---
 
 ## Repository Structure
@@ -486,6 +515,20 @@ forge build --sizes
 forge fmt
 ```
 
+## Demo Governance Proposal
+
+A demo proposal was created through the deployed `ProtocolGovernor` for frontend governance testing.
+
+| Item | Value |
+|---|---|
+| Proposal ID | `48314768028055173947546214552902984144812981027415071482929356650676633766421` |
+| Governor | `0x77b883238BAe5511935697B08080a4Dd90C9dCF8` |
+| Description | `Demo proposal: read FeeVault total managed assets for PredictX frontend governance testing` |
+| Vote Start Block | `41632758` |
+| Vote End Block | `41683158` |
+
+The proposal is indexed by The Graph and can be loaded in the frontend by `proposalId`. It demonstrates proposal listing, on-chain state loading, and vote UI integration.
+
 ---
 
 ## Documentation
@@ -498,6 +541,7 @@ forge fmt
 | Deployment Registry | `/deployments/addresses.md` |
 | Security Policy | `/SECURITY.md` |
 | Contribution Guide | `/CONTRIBUTING.md` |
+| Coverage Report | `/coverage/coverage-report.md` |
 
 ## License
 

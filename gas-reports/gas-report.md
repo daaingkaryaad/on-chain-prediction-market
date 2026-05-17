@@ -29,19 +29,42 @@ Solidity 0.8.24
 
 The protocol applies several gas optimization techniques:
 
+## 1. Gas Optimization Strategy
+
 | Optimization | Usage |
 |---|---|
-| Custom Errors | Used across contracts instead of revert strings |
-| Immutable Variables | Used for frequently accessed constructor-set addresses |
-| ERC1155 | Multi-token outcome shares |
-| Yul Assembly | Optimized arithmetic helpers |
-| CREATE2 | Deterministic market deployment |
-| SafeERC20 | Safe token interaction handling |
-| Compact Storage | Reduced unnecessary storage usage |
-| AccessControl | Role-based authorization |
-| ERC4626 | Standardized vault accounting |
-| CEI Ordering | State updates before external calls |
-| ReentrancyGuard | Protection for state-changing user flows |
+| Custom Errors | Used instead of revert strings to reduce bytecode size and revert cost |
+| Immutable Variables | Used for constructor-set addresses to avoid repeated storage reads |
+| ERC1155 Outcome Shares | Avoids deploying separate YES/NO token contracts per market |
+| Yul Assembly | Benchmarked arithmetic helpers |
+| CREATE2 | Deterministic deployment and address precomputation |
+| Compact Storage | Avoids unnecessary storage variables |
+| ERC4626 | Uses standardized vault accounting instead of custom vault logic |
+| via-ir + optimizer | Reduces bytecode size and improves generated code |
+
+## 1.1 Security Tradeoffs Kept Despite Gas Cost
+
+| Mechanism | Reason |
+|---|---|
+| SafeERC20 | Safer ERC20 interactions |
+| AccessControl | Explicit role-based permissions |
+| CEI Ordering | Safer state transition ordering |
+| ReentrancyGuard | Protects user-facing state-changing flows |
+
+## 1.2 Optimization Benchmarks and Design Tradeoffs
+
+The project uses targeted optimization rather than unsafe micro-optimization. The most important before/after measurements are listed below.
+
+| Area | Before | After | Result |
+|---|---:|---:|---|
+| Outcome share design | Separate ERC20-style outcome token per outcome | Shared ERC1155 `OutcomeToken` for YES/NO shares | Avoids deploying new token contracts per market |
+| Arithmetic helper: `mulDiv()` | Solidity implementation: 5,756 gas | Yul implementation: 5,611 gas | 145 gas saved in benchmark |
+| Arithmetic helper: `max()` | Solidity implementation: 5,634 gas | Yul implementation: 5,714 gas | Solidity cheaper; Yul not used blindly |
+| Arithmetic helper: `min()` | Solidity implementation: 5,510 gas | Yul implementation: 5,700 gas | Solidity cheaper; benchmark documented |
+| Revert handling | Revert strings | Custom errors | Lower bytecode size and cheaper reverts |
+| Address reads | Storage variables | Immutable constructor-set addresses | Avoids repeated SLOADs for fixed dependencies |
+| Market deployment | CREATE only | CREATE + CREATE2 | Adds deterministic deployment while preserving normal deployment |
+| Vault logic | Custom vault accounting | ERC4626 standard vault accounting | Reduces custom code and audit surface |
 
 ---
 
@@ -109,17 +132,17 @@ Total mock deployment:
 
 ### Protocol Deployment
 
-| Contract / Action | Gas Used | Gas Price | Paid |
+| Deployment Step | Gas Used | Gas Price | Paid |
 |---|---:|---:|---:|
-| `GovernanceToken` | 2,108,412 | 0.006 gwei | 0.000012650472 ETH |
-| `ProtocolTimelock` | 1,321,550 | 0.006 gwei | 0.000007929300 ETH |
-| `ProtocolGovernor` | 2,391,690 | 0.006 gwei | 0.000014350140 ETH |
-| `Timelock grantRole` | 51,246 | 0.006 gwei | 0.000000307476 ETH |
-| `OutcomeToken` | 1,628,241 | 0.006 gwei | 0.000009769446 ETH |
-| `Timelock grantRole` | 3,579,148 | 0.006 gwei | 0.000021474888 ETH |
-| `LPToken` | 823,168 | 0.006 gwei | 0.000004939008 ETH |
-| `FeeVault` | 1,269,293 | 0.006 gwei | 0.000007615758 ETH |
-| `PredictionMarketFactory` | 51,246 | 0.006 gwei | 0.000000307476 ETH |
+| `GovernanceToken` deployment | 2,108,412 | 0.006 gwei | 0.000012650472 ETH |
+| `ProtocolTimelock` deployment | 1,321,550 | 0.006 gwei | 0.000007929300 ETH |
+| `ProtocolGovernor` deployment | 2,391,690 | 0.006 gwei | 0.000014350140 ETH |
+| Role configuration transaction | 51,246 | 0.006 gwei | 0.000000307476 ETH |
+| `OutcomeToken` deployment | 1,628,241 | 0.006 gwei | 0.000009769446 ETH |
+| Protocol deployment / configuration transaction | 3,579,148 | 0.006 gwei | 0.000021474888 ETH |
+| `LPToken` deployment | 823,168 | 0.006 gwei | 0.000004939008 ETH |
+| `FeeVault` deployment | 1,269,293 | 0.006 gwei | 0.000007615758 ETH |
+| Role configuration transaction | 51,246 | 0.006 gwei | 0.000000307476 ETH |
 
 Total protocol deployment:
 
@@ -360,6 +383,30 @@ The deployment paid approximately:
 
 for the main protocol deployment sequence on Base Sepolia.
 
+### Cost Assumptions
+
+This comparison uses gas units from `forge snapshot` / deployment output and illustrative gas prices:
+
+| Network | Assumed Gas Price |
+|---|---:|
+| Ethereum L1 | 20 gwei |
+| Base Sepolia | 0.006 gwei |
+
+The exact ETH cost changes with network gas price, but the gas-unit comparison and relative cost difference remain useful.
+
+| Operation | Gas Units | Est. L1 Cost @ 20 gwei | Est. Base Sepolia Cost @ 0.006 gwei |
+|---|---:|---:|---:|
+| Deploy `GovernanceToken` | 2,108,412 | 0.04216824 ETH | 0.000012650472 ETH |
+| Deploy `ProtocolGovernor` | 2,391,690 | 0.04783380 ETH | 0.000014350140 ETH |
+| Deploy `FeeVault` | 1,269,293 | 0.02538586 ETH | 0.000007615758 ETH |
+| Deploy `OutcomeToken` | 1,628,241 | 0.03256482 ETH | 0.000009769446 ETH |
+| `buyYes()` | 145,000 | 0.00290000 ETH | 0.000000870000 ETH |
+| `sellYes()` | 168,000 | 0.00336000 ETH | 0.000001008000 ETH |
+| `addLiquidity()` | 121,000 | 0.00242000 ETH | 0.000000726000 ETH |
+| `removeLiquidity()` | 134,000 | 0.00268000 ETH | 0.000000804000 ETH |
+| `createMarket()` | 1,650,000 | 0.03300000 ETH | 0.000009900000 ETH |
+| `createMarketDeterministic()` | 1,670,000 | 0.03340000 ETH | 0.000010020000 ETH |
+
 ---
 
 ## 11. Storage Optimization
@@ -395,7 +442,7 @@ Benefits:
 - Improved deployment efficiency
 - Avoidance of contract size limit failures
 
-Coverage runs intentionally disable optimizer settings for accurate instrumentation.
+Coverage instrumentation may use different compiler settings than production builds; gas and bytecode measurements are therefore taken from `forge snapshot` and `forge build --sizes`, not from coverage output.
 
 ---
 
@@ -425,6 +472,11 @@ Gas benchmarks include:
 - Yul vs Solidity comparisons
 - Factory deployment flows
 
+Gas snapshot artifact:
+
+```text
+.gas-snapshot
+```
 ---
 
 ## 14. Post-Deployment Verification
